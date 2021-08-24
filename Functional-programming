@@ -1,0 +1,20 @@
+Functional programming
+  Functional programming (often abbreviated FP) is the process of building software by composing pure functions. A pure function is a function that, given the same inputs, always returns the same output and has no side effects
+
+Separation
+  If you try to perform effects and logic at the same time, you can create hidden side effects that cause errors in the logic. Keep functions small. Do one thing at a time and do it well.
+
+Composition
+  Plan the composition. Write functions whose outputs will naturally work as inputs to many other functions. Keep function signatures as simple as possible.
+
+Immutability
+  The true constant is change. The mutation hides the change. Hidden change manifests chaos. Therefore, the sages embrace history.
+
+Memorization
+  Memorization is an optimization technique used primarily to speed up computer programs by storing the results of expensive function calls and returning the cached result when the same inputs are repeated.
+
+Currying
+  Currying is the technique of translating the evaluation of a function that takes multiple arguments (or a tuple of arguments) into the evaluation of a sequence of functions, each with a single argument.
+
+Partial application
+  Partial mapping (or partial function mapping) refers to the process of setting a series of arguments to a function, producing another function of lower arity

@@ -1,0 +1,53 @@
+Pattern matching
+  # the = operator in Elixir is actually a match operator.
+The match operator
+  # We have used the = operator a couple times to assign variables in Elixir
+    x = 1                         # 1
+    x                             # 1
+  # In Elixir, the = operator is actually called the matching operator.
+     1 = x                        # 1
+     2 = x                        # ** (MatchError) no match of right hand side value: 1
+      # 1 = x is a valid expression and matches because both the left and right sides are equal to, a variable can only be assigned on the left side of =
+        1 = unknown               # ** (CompileError) iex:1: undefined function unknown/0
+          # There is no unknown variable defined previously, Elixir assumed you were trying to call a function named unknown / 0 but the function does not exist.
+
+Pattern matching
+  # The match operator is not only used to compare simple values, but is also useful for destructuring more complex data types.
+    {a, b, c} = {:hello, "world", 42}                   # {:hello, "world", 42}
+    a                                                   # :hello
+  # Pattern match error will occur if the sides cannot match, for example if the tuples have different sizes, also when comparing different types, for example if you match a tuple on the left side with a list on the right side .
+    {a, b, c} = {:hello, "world"}             # ** (MatchError) no match of right hand side value: {:hello, "world"}
+    {a, b, c} = [:hello, "world", 42]         # ** (MatchError) no match of right hand side value: [:hello, "world", 42]
+  # Even more interesting, we can match specific values. The example below states that the left side will only match the right side when the right side is a tuple starting with the atom: ok
+    {:ok, result} = {:ok, 13}                 # {:ok, 13}
+    result                                    # 13
+  {:ok, result} = {:error, :oops}             # ** (MatchError) no match of right hand side value: {:error, :oops}
+  # We can match patterns in lists.
+  [a, b, c] = [1, 2, 3]                       # [1, 2, 3]
+  a                                           # 1
+  # A list also supports matching on its own head and tail
+    [head | tail] = [1, 2, 3]                 # [1, 2, 3]
+    head                                      # 1
+  # The [head | tail] format is not only used for pattern matching, but also for adding items to a list.
+    list = [1, 2, 3]                          # [1, 2, 3]
+    [0 | list]                                # [0, 1, 2, 3]
+
+The pin operator
+  # variables in elixir can be reassigned
+    x = 1                                     # 1
+    x = 3                                     # 3
+  # Use the ^ pin operator when you want to match the pattern to the existing value of a variable instead of rebinding the variable.
+    x = 1                                     # 1
+    ^x = 2                                    # ** (MatchError) no match of right hand side value: 2
+  # We can use the pin operator inside other pattern matches, like tuples or lists
+    x = 1                                     # 1
+    [^x, 2, 3] = [1, 2, 3]                    # [1, 2, 3]
+    {y, ^x} = {2, 1}                          # {2, 1}
+    y = 2                                     # 2
+    {y, ^x} = {2, 2}                          # ** (MatchError) no match of right hand side value: {2, 2}
+  # It is common practice to match these values to the hyphen, _. For example, if we only care about the header of the list, we can assign the ending to the underline.
+    [head | _] = [1, 2, 3]                    # [1, 2, 3]
+    head                                      # 1
+      # this variable of _ cannot be read.
+  # you cannot make function calls on the left side of a match.
+    length([1, [2], 3]) = 3       # ** (CompileError) iex:1: cannot invoke remote function :erlang.length/1 inside match

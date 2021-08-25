@@ -1,0 +1,102 @@
+Binaries, strings, and charlists
+Code points and Unicode
+  # Unicode organizes all the characters in its repertoire into code tables, and each character is given a unique numeric index. This numerical index is known as a code point.
+  # In Elixir you can use a? In front of a literal character to reveal its code point.
+    ?a                                                                # 97
+    ?ł                                                                # 322
+  # Most Unicode code graphics will refer to a code point by its hexadecimal representation, 97 is 0061 in hexadecimal, and any Unicode character can be represented in an Elixir string using the \ u and the hexadecimal representation of its point number. code
+    "\u0061" === "a"                                                  # true
+    0x0061 = 97 = ?a                                                  # 97
+
+UTF-8 y codificaciones
+  # UTF-8 is a variable-width character encoding that uses one to four bytes to store each code point; it is capable of encoding all valid Unicode code points.
+  # While the code point is what we store, an encoding deals with how we store it.
+  # encoding is an implementation. In other words, we need a mechanism to convert code point numbers to bytes so that they can be stored in memory, written to disk, etc.
+  # Elixir uses UTF-8 to encode its strings, which means that the code points are encoded as a series of 8-bit bytes.
+
+  # Besides defining characters, UTF-8 also provides a notion of graphemes. Graphemes can consist of several characters that are often perceived as one. For example, that can be represented in Unicode as a single character. It can also be represented as the combination of the character e and the acute accent character 'in a single grapheme.
+    string = "héllo"                                                  # "héllo"
+    String.length(string)                                             # 5
+    length(String.to_charlist(string))                                # 6
+    byte_size(string)                                                 # 7
+  # A common trick in Elixir when you want to see the internal binary representation of a string is to concatenate it the null byte <<0>>
+    "hełło" <> <<0>>                                                  # <<104, 101, 197, 130, 197, 130, 111, 0>>
+  # Alternatively you can see the binary representation of a string using IO.inspect
+    IO.inspect("hełło", binaries: :as_binaries)                       # <<104, 101, 197, 130, 197, 130, 111>>
+
+Bitstrings
+  # A bit string is a fundamental data type in Elixir, denoted by the << >> syntax. A bit string is a contiguous sequence of bits in memory.
+  # By default, 8 bits (that is, 1 byte) are used to store each number in a bit string, but you can manually specify the number of bits using a :: n switch to indicate the size in nbits, or you can use the more detailed declaration :: size (n).
+    <<42>> === <<42::8>>                                              # true
+    <<3::4>>                                                          # <<3::size(4)>>
+  # The decimal number 3 when represented with 4 bits in base 2 would be 0011, which is equivalent to the values 0, 0, 1, 1, each stored using 1 bit
+    <<0::1, 0::1, 1::1, 1::1>> == <<3::4>>                            # true
+  # Any value that exceeds what can be stored for the number of bits provisioned is truncated.
+    <<1>> === <<257>>                                                 # true
+      # 257 in base 2 would be represented as 100000001, but since we have reserved only 8 bits for its representation (by default), the leftmost bit is ignored and the value is truncated 00000001, or just 1 in decimal.
+
+Binaries
+  # A binary is a string of bits where the number of bits is divisible by 8. That means that each binary is a string of bits, but not all strings of bits are binary. We can use the is_bitstring and is_binary functions to demonstrate this.
+    is_bitstring(<<3::4>>)                                            # true
+    is_binary(<<3::4>>)                                               # false
+    is_bitstring(<<0, 255, 42>>)                                      # true
+    is_binary(<<0, 255, 42>>)                                         # true
+    is_binary(<<42::16>>)                                             # true
+  # you can match patterns in binaries / bit strings.
+    <<0, 1, x>> = <<0, 1, 2>>                                         # <<0, 1, 2>>
+    x                                                                 # 2
+  # Note that unless you use :: modifiers explicitly, each entry in the binary pattern is expected to match a single byte (exactly 8 bits). If we want to match on a binary of unknown size, we can use the binary modifier at the end of the pattern
+    <<0, 1, x>> = <<0, 1, 2, 3>>                                      # ** (MatchError) no match of right hand side value: <<0, 1, 2, 3>>
+    <<0, 1, x::binary>> = <<0, 1, 2, 3>>                              # <<0, 1, 2, 3>>
+    x                                                                 # <<2, 3>>
+  # There are a few other modifiers that can be useful when pattern matching in binaries. The binary-size (n) modifier will match the nbytes in a binary.
+    <<head::binary-size(2), rest::binary>> = <<0, 1, 2, 3>>           # <<0, 1, 2, 3>>
+    head                                                              # <<0, 1>>
+    rest                                                              # <<2, 3>> 
+  # A string is a UTF-8 encoded binary, where the code point for each character is encoded using 1 to 4 bytes. Therefore, each string is a binary, but due to standard UTF-8 encoding rules, not all binaries are a valid string.
+    is_binary("hello")                                                # true
+    is_binary(<<239, 191, 19>>)                                       # true
+    String.valid?(<<239, 191, 19>>)                                   # false
+  # The string concatenation operator <> is actually a binary concatenation operator.
+    "a" <> "ha"                                                       # "aha"
+    <<0, 1>> <> <<2, 3>>                                              # <<0, 1, 2, 3>>
+  # Since strings are binary, we can also match patterns on strings.
+    <<head, rest::binary>> = "banana"                                 # "banana"
+    head == ?b                                                        # true
+    rest                                                              # "anana"
+  # binary pattern matching works on bytes, so matching on the string like "über" with multibyte characters will not match on the character, it will match on the first byte of that character.
+    "ü" <> <<0>>                                                      # <<195, 188, 0>>
+    <<x, rest::binary>> = "über"                                      # "über"
+    x == ?ü                                                           # false
+    rest                                                              # <<188, 98, 101, 114>>
+  # x only matches the first byte of the ü multibyte character.
+  # Therefore, when matching patterns in strings, it is important to use the utf8 modifier.
+    <<x::utf8, rest::binary>> = "über"                                # "über"
+    x == ?ü                                                           # true
+    rest                                                              # "ber"
+
+Charlists
+  # A character list is a list of integers where all integers are valid code points
+  # strings (i.e. binaries) are created using double quotes, character lists are created with literals enclosed in single quotes.
+    'hello'                                                           # 'hello'
+    [?h, ?e, ?l, ?l, ?o]                                              # 'hello'
+  # You can see that instead of containing bytes, a character list contains integer code points. However, the list is only printed in single quotes if all code points are within the ASCII range.
+    hełło'                                                            # [104, 101, 322, 322, 111]
+    is_list('hełło')                                                  # true
+  # If you are storing a list of integers ranging from 0 to 127, by default, IEx will interpret it as a list of characters and display the corresponding ASCII characters.
+    heartbeats_per_minute = [99, 97, 116]                             # 'cat'
+  # You can convert a list of characters to a string and vice versa using the to_string and to_charlist functions, these functions are polymorphic: they not only convert lists of characters to strings, but they also operate on integers, atoms, etc.
+    to_charlist("hełło")                                              # [104, 101, 322, 322, 111]
+    to_string('hełło')                                                # "hełło"
+    to_string(:hello)                                                 # "hello"
+    to_string(1)                                                      # "1"
+  # String concatenation (binary) uses the <> operator, talk lists, being lists, use the list concatenation operator ++
+    'this ' <> 'fails'                                                # ** (ArgumentError) expected binary argument in <> operator but got: 'this '
+                                                                        (elixir) lib/kernel.ex:1821: Kernel.wrap_concatenation/3
+                                                                        (elixir) lib/kernel.ex:1808: Kernel.extract_concatenations/2
+                                                                        (elixir) expanding macro: Kernel.<>/2
+                                                                        iex:1: (file)
+    'this ' ++ 'works'                                                # 'this works'
+    "he" ++ "llo"                                                     # ** (ArgumentError) argument error
+                                                                        :erlang.++("he", "llo")
+    "he" <> "llo"                                                     # "hello"

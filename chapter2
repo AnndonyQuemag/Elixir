@@ -1,0 +1,152 @@
+# ================================= Chapter # 2
+Basic Types
+  iex> 1                            # integer
+  iex> 0x1F                         # integer
+  iex> 1.0                          # float
+  iex> true                         # boolean
+  iex> :atom                        # atom / symbol
+  iex> "elixir"                     # string
+  iex> [1, 2, 3]                    # list
+  iex> {1, 2, 3}                    # tuple
+
+Basic Arithmetic
+  1 + 2                             # 3
+  5 * 5                             # 25
+  10 / 2                            # 5.0 
+    # whenever the '/' is used a floating result is obtained
+  div (10, 2), rem 10, 3 
+    # 5 to get an integer result you can use div (# 1, # 2) or rem # 1, # 2
+
+Binary, octal, and hexadecimal numbers
+  0b1010                            # 10
+  0o777                             # 511
+  0x1F                              # 31
+
+Float numbers
+  # These require a period followed by at least one digit, you can also use the e
+    1.0
+    1.0e-10
+  # with round you can bring the floating number closer to an integer, and truncate to obtain the integer part of that number.
+    round(3.58)                          # 4
+    trunc(3.58)                          # 3
+  # You can also use booleans in elixir like ruby ​​and also there is a function that is similar to the ruby ​​method is_boolean () to check if it is a boolean value, you can also use is_integer / 1, is_float / 1 or is_number / 1 to verify
+
+Atoms
+  # An atom is a constant whose value is its own name.
+  :apple                                 #:apple
+  :orange                                #:orange
+
+  :apple == :apple                       # true
+  :apple == :orange                      # true
+
+  # Booleans true and false are also atoms
+  true == :true                           # true
+  is_atom (false)                         # true
+  is_boolean (:false)                     # true
+
+  # Elixir allows you to omit the ':' of the false, true and nil atoms, it also has a construction called aliases that start in uppercase and are also atoms:
+  is_atom (Hello)                         # true
+  is_atom (true)                          # true
+
+String instruments
+  # Strings in Elixir are delimited by double quotes and encoded in UTF-8.
+    "Hello"
+  # Strings can also be interpolated
+    string = :world
+    "hellö # {string}"                    # "hellö world"
+  # Strings can have newlines. You can present them using escape sequences:
+    "Hello
+    ... (2)> ...> world "                 # " hello \ n ...> world "
+  # you can print a string using
+    IO.puts ("hello \ nworld")            # hello
+                                            world
+                                            :ok
+  # Strings in Elixir are represented internally by contiguous sequences of bytes known as binaries
+    is_binary ("hellö")                   # true
+  # We can also get the number of bytes in a string
+    byte_size ("hellö")                   # 6
+  # you can also use .length to see the chain size
+    String.length ("hellö")               # 5
+  # like ruby ​​you can use different string functions for strings like
+    String.upcase ("hellö")               # "HELLÖ"
+    String.downcase ("HEllö")             # "hellö"
+
+Anonymous functions
+  # Elixir also provides anonymous functions. Anonymous functions allow us to store and pass executable code as if it were an integer or a string. They are delimited by the keywords fn and end
+    add = fn a, b -> a + b end
+    add. (1, 2)                           # 3
+      # The point must be taken into account because it differentiates between an anonymous function and a variable in this way there is no ambiguity.
+  # Anonymous functions in Elixir are also identified by the number of arguments they receive. We can check if a function is of some given arity using is_function / 2
+    is_function (add, 2)                  # true
+    is_function (add, 1)                  # false
+  # Anonymous functions can also access variables that are in scope when the function is defined. This is generally known as closures.
+    double = fn a -> add.(a, a) end
+    double. (2)                           # 4
+  # A variable assigned within a function does not affect its surrounding environment
+    x = 42                                # 42
+    (fn -> x = 0 end).()                  # 0
+    x                                     # 42
+
+Lists (linked)
+  # Elixir uses square brackets to specify a list of values. Values ​​can be of any type
+    [1, 2, true, 3]                       # [1, 2, true, 3]
+    length [1, 2, 3]                      # 3
+  # Two lists can be concatenated or subtracted using the ++ and - operators respectively.
+    [1, 2, 3] ++ [4, 5, 6]                                  # [1, 2, 3, 4, 5, 6]
+    [1, true, 2, false, 3, true] - [true, false]            # [1, 2, 3, true]
+  # The head is the first item in a list and the tail is the rest of the list. They can be retrieved with the hd and tl functions.
+    list = [1, 2, 3]
+    hd(list)                               # 1
+    tl(list)                               # [2, 3]
+    hd([])                                 # ** (ArgumentError) argument error
+      # you get an error when trying to extract the head or tail of an empty list
+  # Sometimes you will create a list and return a value in single quotes. For instance
+    [11, 12, 13]                            # '\v\f\r'
+    [104, 101, 108, 108, 111]               # 'hello'
+  # Contact lists are quite common when interacting with existing Erlang code. Whenever you see a value in IEx and you are not quite sure what it is, you can use the i to retrieve information about it
+    i 'hello'                   #Term
+                                  'Hello'
+                                Data type
+                                  List
+                                Description
+                                  This is a list of integers that is printed as a sequence of characters
+                                  delimited by single quotes because all the integers in it represent valid
+                                  ASCII characters. Conventionally, such lists of integers are referred to as
+                                  "charlists" (more precisely, a charlist is a list of Unicode codepoints,
+                                  and ASCII is a subset of Unicode).
+                                Raw representation
+                                  [104, 101, 108, 108, 111]
+                                Reference modules
+                                  List
+                                Implemented protocols
+                                  IEx.Info, Inspect, Enumerable, List.Chars, Collectable, String.Chars
+
+  # single and double quotes are different in Elixir as they represent different types, single quotes are lists of characters, double quotes are strings
+    'hello' == "hello"          # false
+
+Tuples
+  # Elixir uses curly braces to define tuples. Like lists, tuples can contain any value.
+    {:ok, "hello"}                     # {:ok, "hello"}
+    tuple_size {:ok, "hello"}          # 2
+  # Tuples store elements contiguously in memory. This means that accessing a tuple element by index or getting the size of the tuple is a quick operation.
+    tuple = {:ok, "hello"}             # {:ok, "hello"}
+    elem(tuple, 1)                     # "hello"
+    tuple_size(tuple)                  # 2
+  # It is also possible to put an element at a particular index in a tuple with put_elem.
+    put_elem(tuple, 1, "world")        # {:ok, "world"}
+    tuple                              # {:ok, "hello"}
+      # tuples are also immutable. Each operation on a tuple returns a new tuple, the given one never changes
+
+Lists or tuples?
+  # Lists are stored in memory as linked lists, which means that each item in a list holds its value and points to the next item until the end of the list is reached. This means that accessing the length of a list is a linear operation: we need to go through the entire list to determine its size.
+    list = [1, 2, 3]
+    [0] ++ list                         # [0, 1, 2, 3]
+    list ++ [4]                         # [1, 2, 3, 4]
+  while tuples are stored contiguously in memory. This means that getting the size of the tuple or accessing an element by index is fast. However, updating or adding elements to tuples is expensive because it requires creating a new tuple in memory.
+
+  # A very common use case for tuples is to use them to return additional information from a function. For example, File.read/1 is a function that can be used to read the contents of a file
+    File.read ("./chapter2")                              # {:ok, content file}
+    File.read ("path/to/unknown/file")                    # {:error, :enoent}
+      # If the file does not exist, it returns an error tuple with the error description
+  # Most of the time, Elixir will guide you to do the right thing. For example, there is a function element to access a tuple element, but there is no built-in equivalent for lists.
+    elem(tuple, 1)                                        # "hello"

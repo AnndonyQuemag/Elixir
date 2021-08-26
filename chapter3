@@ -1,0 +1,29 @@
+Basic operators
+  # String concatenation is done with <>
+    "foo" <> "bar"                  # "foobar"
+  # Elixir also provides three Boolean operators: or, and, and not. These operators are strict in the sense that they expect something that evaluates to Boolean (true or false) as their first argument.
+    true and true                     # true
+    false or is_atom(:example)        # true
+  # Providing a non-boolean value will raise an exception
+    1 and true                        # ** (BadBooleanError) expected a boolean on left-side of "and", got: 1
+  # 'or', 'and' are short-circuit operators. They only run the right side if the left side is not enough to determine the result.
+    false and raise("This error will never be raised")                          # false
+    true or raise("This error will never be raised")                            # true
+  # In addition to these Boolean operators, Elixir also provides ||, &&, and! accepts arguments of any type. For these operators, all values except falsey nil will evaluate to true.
+    1 || true                           # 1
+    false || 11                         # 11
+    nil && 13                           # nil
+    true && 17                          # 17
+    !true                               # false
+  # As a general rule of thumb, use and, or, and not when expecting Booleans. If any of the arguments are non-Boolean, use &&, || and !
+
+  # Elixir also provides ==,! =, ===,! ==, <=,> =, <and> as comparison operators
+    1 == 1                          # true
+    1 != 2                          # true
+  # The difference between == and === is that the latter is more strict when comparing integers and floats
+    1 == 1.0                        # true
+    1 === 1.0                       # false
+  # In Elixir, we can compare two different types of data
+    1 < :atom                       # true
+  # TAhe reason we can compare different types of data is pragmatism. Classification algorithms do not need to worry about different types of data in order to classify.
+    number < atom < reference < function < port < pid < tuple < map < list < bitstring

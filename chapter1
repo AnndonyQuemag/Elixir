@@ -1,0 +1,10 @@
+Interactive mode
+  # When installing Elixir, you will have three new executables: iex, elixir, and elixirc
+    40 + 2                        # 42
+    "hello" <> "world" # "hello world"
+  # To exit iex you must press Ctrl + C twice.
+
+Running scripts
+  # to run Elixir scripts can be used.
+    IO.puts ("Hello world from Elixir")
+    # save it with any name plus the extension .exs, and to execute it use the command elixir file_name.exsexs

@@ -36,6 +36,7 @@ Finally, add the directory ~ / erlang-18.0 / bin to your environment variable $ 
 Check that the installation works correctly.
 
   $ erl
+  
   Erlang / OTP 19.2 [erts-7.0] [source] [64-bit] [smp: 8: 8] [async-threads: 10] [hype] [kernel-poll: false] Eshell V7.0 (abort with ^ G )
   1>
 

@@ -9,6 +9,7 @@ https://elixir-lang.org/getting-started/introduction.html
 INSTALLATION.
 
 On Mac operating systems.
+
 brew install erlang
 
 On Linux operating systems.

@@ -8,15 +8,15 @@ https://elixir-lang.org/getting-started/introduction.html
 
 INSTALLATION.
 
-On Mac operating systems.
+  On Mac operating systems.
 
-  brew install erlang
+    brew install erlang
 
-On Linux operating systems.
+  On Linux operating systems.
 
-  sudo apt-get update
+    sudo apt-get update
 
-  sudo apt-get install erlang
+    sudo apt-get install erlang
 
 Once Erlang is installed, we proceed with the compilation of it.
 
@@ -25,30 +25,30 @@ Download Kerl.
 
 Choose a version and install it
 
-  kerl build 19.2 mybuild_19.2
+    kerl build 19.2 mybuild_19.2
   
-  kerl install mybuild_19.2 ~ / kerl / 19.2
+    kerl install mybuild_19.2 ~ / kerl / 19.2
 
 Finally, add the directory ~ / erlang-18.0 / bin to your environment variable $ PATH.
 
-  ~ / kerl / 19.2 / bin
+    ~ / kerl / 19.2 / bin
 
 Check that the installation works correctly.
 
-  $ erl
+    $ erl
   
-  Erlang / OTP 19.2 [erts-7.0] [source] [64-bit] [smp: 8: 8] [async-threads: 10] [hype] [kernel-poll: false] Eshell V7.0 (abort with ^ G )
-  1>
+    Erlang / OTP 19.2 [erts-7.0] [source] [64-bit] [smp: 8: 8] [async-threads: 10] [hype] [kernel-poll: false] Eshell V7.0 (abort with ^ G )
+    1>
 
 Elixir Installation.
 
   Install Curl.
   
-    MacOS
+  MacOS
     
       spack install coreutils curl git
       
-    Linux.
+  Linux.
     
       sudo apt install curl git
 
@@ -56,7 +56,7 @@ Elixir Installation.
   
   Git.
   
-  git clone https://github.com/asdf-vm/asdf.git ~ / .asdf --branch v0.8.1
+    git clone https://github.com/asdf-vm/asdf.git ~ / .asdf --branch v0.8.1
   
   Homebrew.
   
@@ -64,7 +64,7 @@ Elixir Installation.
 
   Configure asdf in terminal
   
-    Add the following to ~ / .bashrc:
+  Add the following to ~ / .bashrc:
     
       . $ HOME / .asdf / asdf.sh
       

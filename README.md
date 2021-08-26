@@ -10,12 +10,13 @@ INSTALLATION.
 
 On Mac operating systems.
 
-brew install erlang
+  brew install erlang
 
 On Linux operating systems.
 
-sudo apt-get update
-sudo apt-get install erlang
+  sudo apt-get update
+
+  sudo apt-get install erlang
 
 Once Erlang is installed, we proceed with the compilation of it.
 
@@ -25,6 +26,7 @@ Download Kerl.
 Choose a version and install it
 
   kerl build 19.2 mybuild_19.2
+  
   kerl install mybuild_19.2 ~ / kerl / 19.2
 
 Finally, add the directory ~ / erlang-18.0 / bin to your environment variable $ PATH.
@@ -32,6 +34,7 @@ Finally, add the directory ~ / erlang-18.0 / bin to your environment variable $ 
   ~ / kerl / 19.2 / bin
 
 Check that the installation works correctly.
+
   $ erl
   Erlang / OTP 19.2 [erts-7.0] [source] [64-bit] [smp: 8: 8] [async-threads: 10] [hype] [kernel-poll: false] Eshell V7.0 (abort with ^ G )
   1>
@@ -39,20 +42,31 @@ Check that the installation works correctly.
 Elixir Installation.
 
   Install Curl.
+  
     MacOS
+    
       spack install coreutils curl git
+      
     Linux.
+    
       sudo apt install curl git
 
   Download asdf.
-  Git
+  
+  Git.
+  
   git clone https://github.com/asdf-vm/asdf.git ~ / .asdf --branch v0.8.1
-  Homebrew
+  
+  Homebrew.
+  
     brew install asdf
 
   Configure asdf in terminal
+  
     Add the following to ~ / .bashrc:
+    
       . $ HOME / .asdf / asdf.sh
+      
       . $ HOME / .asdf / completions / asdf.bash
 
   Install Kiex.

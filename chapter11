@@ -1,0 +1,98 @@
+Processes
+  # In Elixir, all code runs inside processes. The processes are isolated from each other, run simultaneously, and are
+   they communicate by passing messages. Processes are not only the basis for concurrency in Elixir, they also provide
+   the means of creating distributed and fault-tolerant programs.
+
+spawn
+  # The basic mechanism for generating new processes is the automatic spawn import function.
+    spawn(fn -> 1 + 2 end)
+      #PID<0.43.0>
+  # Warning spaw returns a PID (process identifier). At this point, the process you spawned is most likely dead. The generated process will execute the given function and exit after the function is ready.
+    pid = spawn(fn -> 1 + 2 end)                                                      #=> #PID<0.44.0>
+    Process.alive?(pid)                                                               #=> false
+  # We can retrieve the PID of the current process by calling self.
+    self()                                                                            #=> #PID<0.41.0>
+    Process.alive?(self())                                                            #=> true
+
+send y receive
+  # We can send messages to a process with send and receive them with receive
+    send(self(), {:hello, "world"})
+    {:hello, "world"}
+    iex> receive do
+    ...>   {:hello, msg} -> msg
+    ...>   {:world, _msg} -> "won't match"
+    ...> end                                                                          #=> "world"
+  # If there is no message in the mailbox that matches any of the patterns, the current process will wait until a matching message arrives. You can also specify a timeout.
+    receive do
+    ...>   {:hello, msg}  -> msg
+    ...> after
+    ...>   1_000 -> "nothing after 1s"
+    ...> end                                                                          #=> "nothing after 1s"
+  # You can give a timeout of 0 when you are already waiting for the message to be in the mailbox.
+    parent = self()                                                                   #=> #PID<0.41.0>
+    spawn(fn -> send(parent, {:hello, self()}) end)                                   #=> #PID<0.48.0>
+    receive do
+    ...>   {:hello, pid} -> "Got hello from #{inspect pid}"
+    ...> end                                                                          #=> "Got hello from #PID<0.48.0>"
+      # The inspect function is used to convert the internal representation of a data structure to a string, usually for printing.
+  # While in method, you may find the flush helper quite useful. Download and print all the messages in the mailbox.
+    send(self(), :hello)                                                              #=> :hello
+    flush()                                                                           #=> :hello :ok
+
+Enlaces
+  # Most of the time processes are spawned in Elixir, they are spawned as linked processes.
+  # What happens when spawn fails a process that it started, the process keeps running.
+    spawn(fn -> raise "oops" end)
+      #PID<0.58.0>
+
+      [error] Process #PID<0.58.00> raised an exception
+      ** (RuntimeError) oops
+          (stdlib) erl_eval.erl:668: :erl_eval.do_apply/6
+  # The main process continues to run because the processes are isolated. If we want the failure in one process to spread to another, we must link them. This can be done with spawn_link.
+    self()
+      #PID<0.41.0>
+    spawn_link(fn -> raise "oops" end)
+      ** (EXIT from #PID<0.41.0>) evaluator process exited with reason: an exception was raised:
+          ** (RuntimeError) oops
+              (stdlib) erl_eval.erl:668: :erl_eval.do_apply/6
+
+      [error] Process #PID<0.289.0> raised an exception
+      ** (RuntimeError) oops
+          (stdlib) erl_eval.erl:668: :erl_eval.do_apply/6
+  # Because the processes are linked, we now see a message saying that the parent process, which is the shell process, has received an EXIT signal from another process that causes the shell to terminate. IEx detects this situation and starts a new shell session.
+
+Tasks
+  # Tasks build on build functions to provide better insight and error reporting.
+    Task.start(fn -> raise "oops" end)
+      {:ok, #PID<0.55.0>}
+
+      15:22:33.046 [error] Task #PID<0.55.0> started from #PID<0.53.0> terminating
+      ** (RuntimeError) oops
+          (stdlib) erl_eval.erl:668: :erl_eval.do_apply/6
+          (elixir) lib/task/supervised.ex:85: Task.Supervised.do_apply/2
+          (stdlib) proc_lib.erl:247: :proc_lib.init_p_do_apply/3
+      Function: #Function<20.99386804/0 in :erl_eval.expr/5>
+          Args: []
+  # Instead of spawn and spawn_link, we use Task.start and Task.start_link which return in {: ok, pid} instead of just the PID. This is what allows tasks to be used in monitoring trees. In addition, Task provides convenience functions, such as Task.async and Task.await, and functionality to facilitate distribution.
+
+Estado
+  # Processes are the most common answer to this question. We can write infinitely repeating processes, maintain state, and send and receive messages.
+    kv.exs
+    {:ok, pid} = KV.start_link()                                                                        #=> {:ok, #PID<0.62.0>}
+    send(pid, {:get, :hello, self()})                                                                   #=> {:get, :hello, #PID<0.41.0>}
+    flush()                                                                                             #=> nil :ok
+  # At first the process map has no keys, so sending a :get message and then emptying the inbox of the current process returns nil.
+    send(pid, {:put, :hello, :world})                                                                   #=> {:put, :hello, :world}
+    send(pid, {:get, :hello, self()})                                                                   #=> {:get, :hello, #PID<0.41.0>}
+    flush()                                                                                             #=> :world :ok
+  # How the process maintains a state and we can get and update this state by sending the process messages. In fact, any process that knows the above pid will be able to send you messages and manipulate the state.
+  # It is also possible to register the pid, giving it a name and allowing everyone who knows the name to send it messages.
+    Process.register(pid, :kv)                                                                          #=> true
+    send(:kv, {:get, :hello, self()})                                                                   #=> {:get, :hello, #PID<0.41.0>}
+    flush()                                                                                             #=> :world :ok
+  # The use of processes to keep track of names and statuses are very common patterns in Elixir applications.
+  # most of the time, those patterns are not implemented manually as stated above, but using one of the many abstractions that are included with Elixir.
+    {:ok, pid} = Agent.start_link(fn -> %{} end)                                                        #=> {:ok, #PID<0.72.0>}
+    Agent.update(pid, fn map -> Map.put(map, :hello, :world) end)                                       #=> :ok
+    Agent.get(pid, fn map -> Map.get(map, :hello) end)                                                  #=> :world
+  # In addition to agents, Elixir provides an API to build generic servers (called GenServer), tasks, and more, all driven by underlying processes.

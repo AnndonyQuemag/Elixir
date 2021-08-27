@@ -1,0 +1,47 @@
+Enumerables and Streams
+
+Enumerables
+  # Elixir provides the concept of enumerable and the Enum module for working with them.
+    Enum.map([1, 2, 3], fn x -> x * 2 end)                                                    #=>[2, 4, 6]
+    Enum.map(%{1 => 2, 3 => 4}, fn {k, v} -> k * v end)                                       #=> [2, 12]
+  # The Enum module provides a wide range of functions for transforming, sorting, grouping, filtering, and retrieving items from enumerable.
+  # Elixir also provides ranks.
+    Enum.map(1..3, fn x -> x * 2 end)                                                         #=> [2, 4, 6]
+    Enum.reduce(1..3, 0, &+/2)                                                                #=> 6
+  # The functions of the Enum module are limited, as the name implies, to enumerating values in data structures. For specific operations, such as inserting and updating particular elements, look for specific modules for the data type.
+  # For example, if you want to insert an item at a given position in a list, you should use the List.insert_at function
+
+Eager vs Lazy
+  # All the functions of the Enum module are anxious. Many functions expect an enumerable and return a list.
+    odd? = &(rem(&1, 2) != 0)
+      #Function<6.80484245/1 in :erl_eval.expr/5>
+      Enum.filter(1..3, odd?)                                                                 #=> [1, 3]
+  # This means that when performing multiple operations with Enum, each operation will generate an intermediate list until the result is reached.
+    1..100_000 |> Enum.map(&(&1 * 3)) |> Enum.filter(odd?) |> Enum.sum()                      #=> 7500000000
+      # We start with a range and then multiply each item in the range by 3. This first operation will now create and return a list with 100_000 items. Then we keep all the odd elements of the list, generating a new list, now with 50_000 elements, and then we add all the entries.
+
+The pipe operator
+  # The symbol |> is the pipe operator, it takes the output of the expression on its left side and passes it as the first argument to the function call on its right side. Its purpose is to highlight the data that is being transformed by a series of functions. To see how you can make the code cleaner.
+
+Streams
+  # As an alternative to Enum, Elixir provides the Stream Module that supports lazy operations.
+    1..100_000 |> Stream.map(&(&1 * 3)) |> Stream.filter(odd?) |> Enum.sum                    #=> 7500000000
+  # Instead of generating intermediate lists, the streams build a series of calculations that are invoked only when we pass the underlying stream to the Enummodule. Flows are useful when working with large, possibly infinite, collections.
+  # Many functions of the Stream Module accept any enumerable as an argument and return a stream as the result. It also provides functions for creating flows.
+    stream = Stream.cycle([1, 2, 3])
+    #Function<15.16982430/2 in Stream.unfold/2>
+    Enum.take(stream, 10)                                                                     #=> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
+  # On the other hand, Stream.unfold can be used to generate values from a given initial value.
+    stream = Stream.unfold("hełło", &String.next_codepoint/1)
+      #Function<39.75994740/2 in Stream.unfold/2>
+    Enum.take(stream, 3)                                                                      #=> ["h", "e", "ł"]
+  # Another cool function is Stream.resource / 3 which can be used to wrap resources, ensuring that they are opened just before enumeration and closed after, even in the event of failures.
+    stream = File.stream!("path/to/file")
+      %File.Stream{
+        line_or_bytes: :line,
+        modes: [:raw, :read_ahead, :binary],
+        path: "path/to/file",
+        raw: true
+      }
+    Enum.take(stream, 10)
+  # This example will get the first 10 lines of the file you have selected. This means that streams can be very useful for handling large files or even slow resources like network resources.

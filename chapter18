@@ -1,0 +1,123 @@
+Sigils
+  # One of Elixir's goals is extensibility: developers should be able to extend the language to suit any particular domain.
+  # Elixir aims to be extensible so that developers, businesses, and communities can extend the language to their relevant domains.
+
+Regular expressions
+  # The most common sigil in Elixir is ~ r, which is used to create regular expressions.
+    regex = ~r/foo|bar/                                 #=> ~r/foo|bar/
+    "foo" =~ regex                                      #=> true
+    "bat" =~ regex                                      #=> false
+  # Regular expressions also support modifiers. The modifier makes a regular expression case insensitive.
+    "HELLO" =~ ~r/hello/                                #=> false
+    "HELLO" =~ ~r/hello/i                               #=> true
+  # All examples have used / to delimit a regular expression. However, sigils support 8 different delimiters.
+    ~r/hello/
+    ~r|hello|
+    ~r"hello"
+    ~r'hello'
+    ~r(hello)
+    ~r[hello]
+    ~r{hello}
+    ~r<hello>
+
+Strings, char lists, and word lists sigils
+  Strings
+    # The ~ s stealth is used to generate strings, as are double quotes. The ~ s stealth is useful when a string contains double quotes.
+      ~s(this is a string with "double" quotes, not 'single' ones)          #=> "this is a string with \"double\" quotes, not 'single' ones"
+
+  Char lists
+    # The ~ c stealth is useful for generating lists of characters that contain single quotes.
+      ~c(this is a char list containing 'single quotes')                    #=> 'this is a char list containing \'single quotes\''
+
+  Word lists
+    # The ~ w stealth is used to generate lists of words (words are regular strings). Within the ~ w sigil, the words are separated by whitespace.
+      ~w(foo bar bat)                                                       #=> ["foo", "bar", "bat"]
+    # The ~ w stealth also accepts modifiers c, s, and a, which specify the data type of the items in the resulting list.
+      ~w(foo bar bat)a                                                      #=> [:foo, :bar, :bat]
+
+Interpolation and escaping in string sigils
+  # Elixir supports some stealth variants to deal with escaping characters and tween. In particular, capital letter sigils do not interpolate or escape.
+    ~s(String with escape codes \x26 #{"inter" <> "polation"})              #=> "String with escape codes & interpolation"
+    ~S(String without escape codes \x26 without #{interpolation})           #=> "String without escape codes \\x26 without \#{interpolation}"
+  # The following escape codes can be used in strings and character lists.
+    \\ - single backslash
+    \ a - bell / alert
+    \ b - backspace
+    \ d - Delete
+    \ e - escape
+    \ f - feed form
+    \ n - new line
+    \ r - carriage return
+    \ s - space
+    \ t - tab
+    \ v - vertical tab
+    \ 0 - null byte
+    \ xDD- represents a single byte in hexadecimal (like \ x13)
+    \ uDDDDy \ u {D ...} - represents a Unicode code point in hexadecimal (such as \ u {1F600})
+  # In addition to those, a double quote within a string enclosed in double quotes should be escaped as \ "and analogously a single quote within a list of characters enclosed in single quotes should be escaped as \ '
+  # Sigils also supports heredocs, that is, three double quotes or single quotes as separators.
+    ~s"""
+      this is
+      a heredoc string
+      """
+  # The most common use case for heredoc sigils is when writing documentation.
+    @doc """
+    Converts double-quotes to single-quotes.
+
+    ## Examples
+
+        iex> convert("\\\"foo\\\"")
+        "'foo'"
+
+    """
+    def convert(...)
+  # By using ~ S, this problem can be completely avoided.
+    @doc ~S"""
+    Converts double-quotes to single-quotes.
+
+    ## Examples
+
+        iex> convert("\"foo\"")
+        "'foo'"
+
+    """
+    def convert(...)
+
+Calendar sigils
+  # Elixir offers various sigils to deal with various flavors of times and dates.
+
+  Date
+    # A % of the date {} structure contains the year, month, day, and calendar fields. You can create one using the ~ D stealth
+      d = ~D[2019-10-31]                                              #=> ~D[2019-10-31]
+      d.day                                                           #=> 31
+
+  Time
+    # The % {} Time structure contains the hour, minute, second, microsecond, and calendar fields. You can create one using the ~ T stealth.
+      t = ~T[23:00:07.0]                                              #=> ~T[23:00:07.0]
+      t.second                                                        #=> 7
+
+  NaiveDateTime
+    # The % NaiveDateTime {} structure contains fields from both Date and Time. You can create one using the ~ N stealth.
+      ndt = ~N[2019-10-31 23:00:07]                                   #=> ~N[2019-10-31 23:00:07]
+
+  UTC DateTime
+    # Stealth allows developers to create a date and time in the UTC time zone.
+      dt = ~U[2019-10-31 19:59:03Z]                                   #=> ~U[2019-10-31 19:59:03Z]
+      %DateTime{minute: minute, time_zone: time_zone} = dt            #=> ~U[2019-10-31 19:59:03Z]
+      minute                                                          #=> 59
+      time_zone                                                       #=> "Etc/UTC"
+
+Custom sigils
+  # using the stealth ~ r / foo / i is equivalent to calling sigil_r with a binary and a list of characters as an argument.
+    sigil_r(<<"foo">>, 'i')                                           #=> ~r"foo"i
+  # We can access the ~ r sigil documentation through sigil_r.
+    h sigil_r                                                         #=> documentation...
+  # We can also provide our own sigils by implementing functions that follow the sigil_ {character} pattern.
+    defmodule MySigils do
+      def sigil_i(string, []), do: String.to_integer(string)
+      def sigil_i(string, [?n]), do: -String.to_integer(string)
+    end
+    import MySigils
+    ~i(13)                                                            #=> 13
+    ~i(42)n                                                           #=> -42
+  # Sigils can also be used to perform compile-time work with the help of macros.

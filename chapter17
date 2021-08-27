@@ -1,0 +1,32 @@
+Comprehensions
+  # Comprehensions are syntactic sugar for such constructions: they group those common tasks in the special form.
+  # An understanding is made up of three parts: generators, filters, and collectibles.
+    for n <- [1, 2, 3, 4], do: n * n                                  #=> [1, 4, 9, 16]
+
+Generators and filters
+  # In the above expression, n <- [1, 2, 3, 4] is the generator. You are literally generating values to be used in understanding.
+   # Generator expressions also support pattern matching on their left side; all patterns that do not match are ignored.
+    values = [good: 1, good: 2, bad: 3, good: 4]
+    for {:good, n} <- values, do: n * n                               #=> [1, 4, 16]
+  # As an alternative to pattern matching, filters can be used to select some particular items.
+    for n <- 0..5, rem(n, 3) == 0, do: n * n                          #=> [0, 9]
+  # The comprehensions discard all items for which the filter expression returns false or nil, all other values are selected.
+  # Multiple generators can also be used to calculate the Cartesian product of two lists.
+    for i <- [:a, :b, :c], j <- [1, 2], do:  {i, j}                   #=> [a: 1, a: 2, b: 1, b: 2, c: 1, c: 2]
+  # Finally, note that variable assignments within comprehension, whether in generators, filters, or within the block, are not reflected outside of comprehension.
+
+Bitstring generators
+  # Bit string generators are also supported and very useful when you need to understand bit string sequences.
+    pixels = <<213, 45, 132, 64, 76, 32, 76, 0, 0, 234, 32, 15>>
+    for <<r::8, g::8, b::8 <- pixels>>, do: {r, g, b}                 #=> [{213, 45, 132}, {64, 76, 32}, {76, 0, 0}, {234, 32, 15}]
+
+The :into option
+  # In the above examples, all comprehensions returned lists as a result. However, the result of an understanding can be inserted into different data structures by passing the: intooption to the understanding.
+    for <<c <- " hello world ">>, c != ?\s, into: "", do: <<c>>       #=> "helloworld"
+  # A common use case of: into can transform values into a map.
+    for {key, val} <- %{"a" => 1, "b" => 2}, into: %{}, do: {key, val * val}              #=> %{"a" => 1, "b" => 4}
+  # an echo terminal that repeats the updated version of what is written can be implemented using comprehensions.
+    stream = IO.stream(:stdio, :line)
+    for line <- stream, into: stream do
+      String.upcase(line) <> "\n"
+    end

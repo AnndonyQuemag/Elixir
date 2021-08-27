@@ -1,0 +1,109 @@
+alias, require, and import
+  # To facilitate software reuse, Elixir provides three directives (aliases, require, and import) plus a macro called use
+    # Alias the module so it can be called as Bar instead of Foo.Bar
+      alias Foo.Bar, as: Bar
+
+    # Require the module in order to use its macros
+      require Foo
+
+    # Import functions from Foo so they can be called without the `Foo.` prefix
+      import Foo
+
+    # Invokes the custom code defined in Foo as an extension point
+      use Foo
+
+alias
+
+  # Allows you to configure aliases for any given module name.
+  # a module uses a specialized list implemented in Math.List. The directive alias allows you to refer to the Math.List the same as List within the module definition.
+    defmodule Stats do
+      alias Math.List, as: List
+        # In the remaining module definition List expands to Math.List.
+    end
+  # Los alias se utilizan con frecuencia para definir atajos. De hecho, llamar aliassin una :asopción establece el alias automáticamente en la última parte del nombre del módulo, por ejemplo las dos lineas son equivalentes.
+    alias Math.List
+    alias Math.List, as: List
+  # aliases are lexically scoped, allowing you to set aliases within specific functions.
+    defmodule Math do
+      def plus(a, b) do
+        alias Math.List
+        # ...
+      end
+
+      def minus(a, b) do
+        # ...
+      end
+    end
+
+require
+  # Elixir provides macros that expand at compile time as a metaprogramming mechanism.
+  # Public functions in modules are available globally, but when using macros you must choose to request the module in which they are defined.
+    Integer.is_odd(3)
+    ** (CompileError) iex:1: you must require Integer before invoking the macro Integer.is_odd/1
+        (elixir) src/elixir_dispatch.erl:97: :elixir_dispatch.dispatch_require/6
+    require Integer                                                                          #=> Integer
+    Integer.is_odd(3)                                                                        #=> true
+  # In Elixir, Integer.is_odd is defined as a macro. This means that to invoke Integer.is_odd, require must first be called.
+
+importar
+  # Import is used whenever you want to access functions or macros from other modules without using the full name.
+  # For example, if you want to use the duplicate function of the List module several times, you can import it import it
+    import List, only: [duplicate: 2]                                                         #=> List
+    duplicate(:ok, 3)                                                                         #=> [:ok, :ok, :ok]
+  # Import has a lexical scope. This means that you can import specific macros or functions within function definitions.
+    defmodule Math do
+      def some_function do
+        import List, only: [duplicate: 2]
+        duplicate(:ok, 10)
+      end
+    end
+
+use
+  # The use macro is often used as an extension point. This means that, when using a FooBar module, it allows that module to inject any code into the current module, such as importing itself or other modules, defining new functions, setting a module state, and so on.
+    defmodule AssertionTest do
+      use ExUnit.Case, async: true
+
+      test "always pass" do
+        assert true
+      end
+    end
+  # putting this in more general terms.
+    defmodule Example do
+      use Feature, option: :value
+    end
+  # this module compiles into.
+    defmodule Example do
+      require Feature
+      Feature.__using__(option: :value)
+    end
+
+Understanding Aliases
+  # An alias in Elixir is a capitalized identifier (like String, Keyword, etc) that is converted to an atom during compilation.
+    is_atom(String)                                                                           #=> true
+    to_string(String)                                                                         #=> "Elixir.String"
+    :"Elixir.String" == String                                                                #=> true
+  # Aliases are expanded to atoms because in Erlang VM (and consequently Elixir) modules are always represented by atoms.
+    List.flatten([1, [2], 3])                                                                 #=> [1, 2, 3]
+    :"Elixir.List".flatten([1, [2], 3])                                                       #=> [1, 2, 3]
+  # That is the mechanism used to call Erlang modules.
+    :lists.flatten([1, [2], 3])                                                               #=> [1, 2, 3]
+
+Module nesting
+  # Nesting in elixir works as follows
+    defmodule Foo do
+      defmodule Bar do
+      end
+    end
+      # Two modules Foo and Foo.Bar are defined. The second can be accessed from Baradentro Foos as long as they are in the same lexical area.
+  # In Elixir, it is not necessary to define the Foo module before you can define the Foo.Bar module, as they are effectively independent. The above could also be written as.
+    defmodule Foo.Bar do
+    end
+
+    defmodule Foo do
+      alias Foo.Bar
+      # Can still access it as `Bar`
+    end
+
+Multi alias/import/require/use
+  # It is possible to create an alias, import or require several modules at the same time. This is particularly useful once we start nesting modules, which is very common when creating Elixir applications.
+    alias MyApp.{Foo, Bar, Baz}

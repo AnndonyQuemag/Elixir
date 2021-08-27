@@ -1,0 +1,49 @@
+Structs
+  # structures are extensions built on top of maps that provide compile-time checks and default values.
+
+Defining structs
+  # The defstruct construct is used.
+    defmodule User do
+      defstruct name: "John", age: 27
+    end
+  # The keyword list used with defstruct defines which fields the structure will have along with their default values.
+  # Structures take the name of the module in which they are defined. In the previous example, we defined a structure called User.
+  # You can create structures using a syntax similar to that used to create maps
+    %User{}                                                       #=> %User{age: 27, name: "John"}
+    %User{name: "Jane"}                                           #=> %User{age: 27, name: "Jane"}
+  # only the fields defined within the structure may exist.
+    %User{oops: :field}                                           #=> ** (KeyError) key :oops not found in: %User{age: 27, name: "John"}
+
+Accessing and updating structs
+  # In the structures as in the maps and lists the data can be accessed, it can also be updated.
+    john = %User{}                                                #=> %User{age: 27, name: "John"}
+    john.name                                                     #=> "John"
+    jane = %{john | name: "Jane"}                                 #=> %User{age: 27, name: "Jane"}
+    %{jane | oops: :field}                                        #=> ** (KeyError) key :oops not found in: %User{age: 27, name: "Jane"}
+  # Structures can also be used in pattern matching, both to match the value of specific keys and to ensure that the matching value is a structure of the same type as the matching value.
+    %User{name: name} = john                                      #=> %User{age: 27, name: "John"}
+    name                                                          #=> "John"
+    %User{} = %{}                                                 #=> ** (MatchError) no match of right hand side value: %{}
+
+Structs are bare maps underneath
+  # pattern matching works because below the structures are bare maps with a fixed set of fields.
+   # structures store a "special" field called __struct__ which contains the name of the structure.
+    is_map(john)                                                  #=> true
+    john.__struct__                                               #=> User
+  # structures are like naked maps because none of the protocols implemented for maps are available for structures.
+    john = %User{}                                                #=> %User{age: 27, name: "John"}
+      #=> ** (UndefinedFunctionError) function User.fetch/2 is undefined (User does not implement the Access behaviour)
+             User.fetch(%User{age: 27, name: "John"}, :name)
+    Enum.each john, fn({field, value}) -> IO.puts(value) end
+      #=> ** (Protocol.UndefinedError) protocol Enumerable not implemented for %User{age: 27, name: "John"}
+  # However, since the structures are only maps, they work with the Map module functions.
+    jane = Map.put(%User{}, :name, "Jane")                        #=> %User{age: 27, name: "Jane"}
+    Map.merge(jane, %User{name: "John"})                          #=> %User{age: 27, name: "John"}
+    Map.keys(jane)                                                #=> [:__struct__, :age, :name]
+
+Default values and required keys
+  # If a default value is not specified when defining the structure, it will take the value nil.
+    defmodule Product do
+      defstruct [:name]
+    end
+    %Product{}                                                    #=> %Product{name: nil}

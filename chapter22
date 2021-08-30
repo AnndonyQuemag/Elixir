@@ -1,0 +1,82 @@
+Erlang libraries
+  # Elixir provides excellent interoperability with Erlang libraries. In fact, Elixir advises against simply wrapping the Erlang libraries in favor of interacting directly with the Erlang code.
+
+The binary module
+  # The built-in Elixir String module handles UTF-8 encoded binaries. The binary module is useful when dealing with binary data that is not necessarily UTF-8 encoded.
+    String.to_charlist "Ø"                                                                        #=> [216]
+    :binary.bin_to_list "Ø"                                                                       #=> [195, 152]
+
+Formatted text output
+  # Elixir does not contain a function similar to what print is found in C and other languages. Fortunately, Erlang's standard library works: io.format and: io_lib.format can be used.
+    :io.format("Pi is approximately given by:~10.3f~n", [:math.pi])                               #=> Pi is approximately given by:     3.142 :ok
+    to_string :io_lib.format("Pi is approximately given by:~10.3f~n", [:math.pi])                 #=> "Pi is approximately given by:     3.142\n"
+  # It should be noted that Erlang's formatting functions require special attention to handling Unicode.
+
+The crypto module
+  # The encryption module contains hashing functions, digital signatures, encryption, and more.
+    Base.encode16(:crypto.hash(:sha256, "Elixir"))                              #=> "3315715A7A3AD57428298676C5AE465DADA38D951BDFAC9348A8A31E9C7401CB"
+  # The: crypto module is not part of the Erlang standard library, but is included with the Erlang distribution.
+    def application do
+      [extra_applications: [:crypto]]
+    end
+
+The digraph module
+  # contains functions for dealing with directed graphs built with vertices and edges. After building the graph, the algorithms will help to find, for example, the shortest path between two vertices or loops on the graph.
+    digraph = :digraph.new()
+    coords = [{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}]
+    [v0, v1, v2] = (for c <- coords, do: :digraph.add_vertex(digraph, c))
+    :digraph.add_edge(digraph, v0, v1)
+    :digraph.add_edge(digraph, v1, v2)
+    :digraph.get_short_path(digraph, v0, v2)                                                    #=> [{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}]
+
+Erlang Term Storage
+  # The ets and dets modules handle the storage of large data structures in memory or on disk, respectively.
+  # ETS allows you to create a table that contains tuples that are protected, which means that only the owner can write to the table, but any other user can read.
+  # ETS has some functionality to allow a table to be used as a simple database, key value store, or as a cache mechanism.
+    table = :ets.new(:ets_test, [])                                                             #=> # Store as tuples with {name, population}
+    :ets.insert(table, {"China", 1_374_000_000})
+    :ets.insert(table, {"India", 1_284_000_000})
+    :ets.insert(table, {"USA", 322_000_000})
+    :ets.i(table)                                     #=> <1  > {<<"India">>,1284000000}, <2  > {<<"USA">>,322000000}, <3  > {<<"China">>,1374000000}
+
+The math module
+  # The math module contains common mathematical operations covering trigonometry, exponential, and logarithmic functions.
+    angle_45_deg = :math.pi() * 45.0 / 180.0
+    :math.sin(angle_45_deg)                                                                     #=> 0.7071067811865475
+    :math.exp(55.0)                                                                             #=> 7.694785265142018e23
+    :math.log(7.694785265142018e23)                                                             #=> 55.0
+
+The queue module
+  # The queue is a data structure that implements (double ended-) FIFO (first in, first out) queues efficiently.
+    q = :queue.new
+    q = :queue.in("A", q)
+    q = :queue.in("B", q)
+    {value, q} = :queue.out(q)
+    value                                                                                       #=> {:value, "A"}
+    {value, q} = :queue.out(q)
+    value                                                                                       #=> {:value, "B"}
+    {value, q} = :queue.out(q)
+    value                                                                                       #=> :empty
+
+The rand module
+  # rand has functions to return random values and set the random seed.
+    :rand.uniform()                                                                             #=> 0.8175669086010815
+    _ = :rand.seed(:exs1024, {123, 123534, 345345})
+    :rand.uniform()                                                                             #=> 0.5820506340260994
+    :rand.uniform(6)                                                                            #=> 6
+
+The zip and zlib modules
+  # The zip module allows you to read and write ZIP files to and from disk or memory, as well as extract information from the file.
+    :zip.foldl(fn _, _, _, acc -> acc + 1 end, 0, :binary.bin_to_list("file.zip"))              #=> {:ok, 633}
+      # esto cuenta la cantidad de archivos en un archivo ZIP.
+  # The zlib module takes care of data compression in the zlib format, as found in the gzip command.
+    song = "
+      Mary had a little lamb,
+      His fleece was white as snow,
+      And everywhere that Mary went,
+      The lamb was sure to go."
+    compressed = :zlib.compress(song)
+    byte_size song                                                                              #=> 110
+    byte_size compressed                                                                        #=> 99
+    :zlib.uncompress(compressed)
+      #=> "\nMary had a little lamb,\nHis fleece was white as snow,\nAnd everywhere that Mary went,\nThe lamb was sure to go."

@@ -1,0 +1,24 @@
+Agent
+
+The trouble with state
+  # Elixir es un lenguaje inmutable donde no se comparte nada por defecto. Si queremos compartir información, que se puede leer y modificar desde múltiples lugares, tenemos dos opciones principales en Elixir.
+    # Uso de procesos y transmisión de mensajes
+    # ETS (almacenamiento de términos de Erlang)
+  # cuando se trata de procesos, rara vez usamos los nuestros, en su lugar usamos las abstracciones disponibles en Elixir y OTP :
+    # Agente : envoltorios simples alrededor del estado.
+    # GenServer : “servidores genéricos” (procesos) que encapsulan el estado, proporcionan llamadas sincronizadas y asincrónicas, admiten la recarga de código y más.
+    # Tarea : unidades de cálculo asincrónicas que permiten generar un proceso y potencialmente recuperar su resultado en un momento posterior.
+
+Agents
+  # Los agentes son envoltorios simples de todo el estado. Si todo lo que desea de un proceso es mantener el estado, los agentes son una excelente opción.
+    {:ok, agent} = Agent.start_link fn -> [] end                                            #=> {:ok, #PID<0.142.0>}
+    Agent.update(agent, fn list -> ["eggs" | list] end)                                     #=> :ok
+    Agent.get(agent, fn list -> list end)                                                   #=> ["eggs"]
+    Agent.stop(agent)                                                                       #=> :ok
+  # La Agent.update/3función acepta como segundo argumento cualquier función que reciba un argumento y devuelva un valor.
+    {:ok, agent} = Agent.start_link fn -> [] end                                            #=> {:ok, #PID<0.338.0>}
+    Agent.update(agent, fn _list -> 123 end)                                                #=> :ok
+    Agent.update(agent, fn content -> %{a: content} end)                                    #=> :ok
+    Agent.update(agent, fn content -> [12 | [content]] end)                                 #=> :ok
+    Agent.update(agent, fn list -> [:nop | list] end)                                       #=> :ok
+    Agent.get(agent, fn content -> content end)                                             #=> [:nop, 12, %{a: 123}]

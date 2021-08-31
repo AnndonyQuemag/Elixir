@@ -1,0 +1,31 @@
+GenServer
+  # Nombrar procesos dinámicos con átomos es una idea terrible. Si usamos átomos, necesitaríamos convertir el nombre del depósito (a menudo recibido de un cliente externo) en átomos, y nunca deberíamos convertir la entrada del usuario en átomos .
+  # Esto se debe a que los átomos no se recolectan como basura. Una vez que se crea un átomo, nunca se recupera.
+  # Generar átomos a partir de la entrada del usuario significaría que el usuario puede inyectar suficientes nombres diferentes para agotar la memoria de nuestro sistema.
+
+  #Usaremos un GenServer para crear un proceso de registro que pueda monitorear los procesos del depósito. GenServer proporciona una funcionalidad de potencia industrial para construir servidores tanto en Elixir como en OTP.
+
+GenServer callbacks
+  # Un GenServer es un proceso que invoca un conjunto limitado de funciones bajo condiciones específicas. Cuando usamos an Agent, mantendríamos el código del cliente y el código del servidor uno al lado del otro.
+  # Hay dos tipos de solicitudes que puede enviar a un GenServer: llamadas y transmisiones. Las llamadas son síncronas y el servidor debe enviar una respuesta a dichas solicitudes. Mientras el servidor calcula la respuesta, el cliente está esperando .
+  # Las conversiones son asincrónicas cuando el servidor no envia una respuesta y, por lo tanto, el cliente no esperará una.
+
+  # El @impl trueinforma al compilador que nuestra intención para la siguiente definición de función es definir una devolución de llamada. Si por casualidad cometemos un error en el nombre de la función o en el número de argumentos, como definimos a handle_call/2, el compilador nos advierte que no hay ninguno handle_call/2para definir y nos da la lista completa de devoluciones de llamada conocidas para el GenServermódulo.
+
+The Client API
+  # Un GenServer se implementa en dos partes: la API del cliente y las devoluciones de llamada del servidor. Puede combinar ambas partes en un solo módulo o puede separarlas en un módulo de cliente y un módulo de servidor.
+    # El cliente es cualquier proceso que invoca la función del cliente.
+    # El servidor es siempre el identificador del proceso o el nombre del proceso que pasaremos explícitamente como argumento a la API del cliente.
+
+call, cast or info?
+  # Hasta ahora hemos utilizado tres devoluciones de llamada: handle_call/3, handle_cast/2y handle_info/2. Esto es lo que debemos considerar al decidir cuándo usar cada uno:
+
+  # handle_call/3debe usarse para solicitudes síncronas. Esta debería ser la opción predeterminada, ya que esperar la respuesta del servidor es un mecanismo de contrapresión útil.
+
+  # handle_cast/2debe usarse para solicitudes asincrónicas, cuando no le importa una respuesta. Un elenco ni siquiera garantiza que el servidor haya recibido el mensaje y, por esta razón, debe usarse con moderación. Por ejemplo, create/2debería haberse utilizado la función que hemos definido en este capítulo call/2. Los hemos utilizado cast/2con fines didácticos.
+
+  # handle_info/2debe usarse para todos los demás mensajes que un servidor pueda recibir que no se envíen a través de GenServer.call/2o GenServer.cast/2, incluidos los mensajes regulares enviados con send/2. Los :DOWNmensajes de seguimiento son un ejemplo de esto.
+
+Monitors or links?
+  # Los enlaces son bidireccionales. Si vincula dos procesos y uno de ellos se bloquea, el otro lado también se bloqueará (a menos que esté atrapando salidas).
+  # Un monitor es unidireccional: solo el proceso de monitorización recibirá notificaciones sobre el monitorizado. En otras palabras: utilice enlaces cuando desee bloqueos vinculados y monitores cuando solo desee estar informado de bloqueos, salidas, etc.

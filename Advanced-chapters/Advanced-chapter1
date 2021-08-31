@@ -1,0 +1,43 @@
+Introduction to Mix
+  # Para construir nuestra aplicación de valor clave, usaremos tres herramientas principales:
+    # OTP (Open Telecom Platform) es un conjunto de bibliotecas que se envía con Erlang. Los desarrolladores de Erlang usan OTP para crear aplicaciones robustas y tolerantes a fallas. En este capítulo exploraremos cuántos aspectos de OTP se integran con Elixir, incluidos árboles de supervisión, administradores de eventos y más;
+
+    # es una herramienta de compilación que se envía con Elixir que proporciona tareas para crear, compilar, probar su aplicación, administrar sus dependencias y mucho más;
+
+    # ExUnit es un marco basado en unidades de prueba que se envía con Elixir
+
+  # Creemos nuestro primer proyecto invocando mix newdesde la línea de comando. Pasaremos la ruta del proyecto como argumento ( kv, en este caso). De forma predeterminada, el nombre de la aplicación y el nombre del módulo se recuperarán de la ruta.
+
+  # una vez se tenga la estructura se puede compilar el proyecto.
+    mix compile
+  # Una vez que se compila el proyecto, puede iniciar una iexsesión dentro del proyecto ejecutando.
+    iex -S mix
+  # Si bien puede iniciar una nueva sesión siempre que haya cambios en el código fuente del proyecto, también puede volver a compilar el proyecto desde dentro iexcon el recompileasistente.
+    recompile()                                                           #=> Compiling 1 file (.ex)  :ok
+    recompile()                                                           #=> :noop
+
+Running tests
+  # Mix también generó la estructura adecuada para ejecutar las pruebas de nuestro proyecto. Los proyectos mixtos generalmente siguen la convención de tener un <filename>_test.exs archivo en el testdirectorio para cada archivo en el libdirectorio.
+  # Es importante tener en cuenta un par de cosas:
+    # el archivo de prueba es un archivo de script Elixir ( .exs). Esto es conveniente porque no necesitamos compilar archivos de prueba antes de ejecutarlos.
+    # definimos un módulo de prueba llamado KVTest, en el que use ExUnit.Caseinyectamos la API de prueba;
+    # usamos una de las macros importadas doctest/1, para indicar que el KVmódulo contiene pruebas de documentación (las discutiremos en un capítulo posterior).
+    # usamos la test/2macro para definir una prueba simple.
+  # Mix también generó un archivo llamado test/test_helper.exsque es responsable de configurar el marco de prueba.
+  # Mix requerirá este archivo cada vez que ejecutemos nuestras pruebas.
+    # recuerde que este comando no va dentro de iex.
+      mix test
+  # Si copia la ubicación de la prueba en su totalidad, incluido el archivo y el número de línea, y la agrega mix test, Mix cargará y ejecutará solo esa prueba en particular.
+    mix test test/kv_test.exs:5
+
+Environments
+  # Mix proporciona el concepto de "entornos". Permiten al desarrollador personalizar la compilación y otras opciones para escenarios específicos. De forma predeterminada, Mix comprende tres entornos.
+    # :dev- aquel en el que las tareas de Mix (como compile) se ejecutan de forma predeterminada.
+    # :test - usado por mix test.
+    # :prod - el que utilizará para ejecutar su proyecto en producción.
+  # Mix se establecerá de forma predeterminada en el :deventorno, a excepción de la testtarea que se utilizará de forma predeterminada en el :test entorno. El entorno se puede cambiar mediante la MIX_ENVvariable de entorno.
+    $ MIX_ENV=prod mix compile
+  # Tenga en cuenta que siempre puede invocar la tarea de ayuda para enumerar todas las tareas disponibles
+    mix help
+  # Puede obtener más información sobre una tarea en particular invocando.
+    mix help TASK.

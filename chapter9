@@ -1,0 +1,66 @@
+Recursion
+
+Loops through recursion
+  # Due to immutability, loops in Elixir (as in any functional programming language) are written differently than imperative languages.
+    for(i = 0; i < sizeof(array); i++) {
+      array[i] = array[i] * 2;
+    }
+  # functional languages are based on recursion: a function is called recursively until a condition is reached that prevents the recursive action from continuing. No data is modified in this process.
+    defmodule Recursion do
+      def print_multiple_times(msg, n) when n > 0 do
+        IO.puts(msg)
+        print_multiple_times(msg, n - 1)
+      end
+
+      def print_multiple_times(_msg, 0) do
+        :ok
+      end
+    end
+
+    Recursion.print_multiple_times("Hello!", 3)
+      # Hello!
+      # Hello!
+      # Hello!
+      :ok
+  # Similar to case, a function can have many clauses. A particular clause executes when the arguments passed to the function match the clause's argument patterns and its guards evaluate to true.
+  # When the second argument is zero, the protection is evaluated as false n> 0 and the first function clause is not executed. Elixir then proceeds to test the following function clause, which explicitly matches in the case where nes 0. This clause, also known as the termination clause, ignores the message argument by assigning it to the _msgvariable and returns the atom: ok.
+  # Finally, if you pass an argument that does not match any clause, Elixir generates a FunctionClauseError
+
+Reduce and map algorithms
+  # recursion can be used to sum a list of numbers.
+    defmodule Math do
+      def sum_list([head | tail], accumulator) do
+        sum_list(tail, head + accumulator)
+      end
+
+      def sum_list([], accumulator) do
+        accumulator
+      end
+    end
+
+    IO.puts Math.sum_list([1, 2, 3], 0)                                                             #=> 6
+      # proceso.
+        sum_list [1, 2, 3], 0
+        sum_list [2, 3], 1
+        sum_list [3], 3
+        sum_list [], 6
+  # The process of taking a list and reducing it to a value is known as a reduction algorithm and is fundamental to functional programming.
+  # What if we want to duplicate all the values in our list?
+    defmodule Math do
+      def double_each([head | tail]) do
+        [head * 2 | double_each(tail)]
+      end
+
+      def double_each([]) do
+        []
+      end
+    end
+
+    iex math.exs
+    iex> Math.double_each([1, 2, 3])                                                                #=> [2, 4, 6]
+  # with Enum you can avoid recursion which is not convenient to use in Elixir, the above examples could be written as
+    Enum.reduce([1, 2, 3], 0, fn(x, acc) -> x + acc end)                                            #=> 6
+    Enum.map([1, 2, 3], fn(x) -> x * 2 end)                                                         #=> [2, 4, 6]
+
+    Enum.reduce([1, 2, 3], 0, &+/2)                                                                 #=> 6
+    Enum.map([1, 2, 3], &(&1 * 2))                                                                  #=>[2, 4, 6]

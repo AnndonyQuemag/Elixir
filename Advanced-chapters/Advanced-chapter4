@@ -1,0 +1,40 @@
+Supervisor and Application
+  # En Elixir, esto lo hace un supervisor. Un supervisor es un proceso que supervisa otros procesos y los reinicia cada vez que fallan. Para ello, los supervisores gestionan todo el ciclo de vida de los procesos supervisados, incluidos el inicio y el cierre.
+
+Our first supervisor
+  # Un supervisor es un proceso que supervisa otros procesos, a los que nos referimos como procesos secundarios.
+  # El acto de supervisar un proceso incluye tres responsabilidades distintas.
+    # El primero es iniciar procesos secundarios.
+    # El supervisor puede reiniciar un proceso secundario, ya sea porque terminó de manera anormal o porque se alcanzó una determinada condición.
+    # Finalmente, un supervisor también es responsable de cerrar los procesos secundarios cuando el sistema se está apagando.
+
+Naming processes
+  # Si bien nuestra aplicación tendrá muchos depósitos, solo tendrá un registro. Por lo tanto, cada vez que iniciamos el registro, queremos darle un nombre único para poder acceder a él desde cualquier lugar. Lo hacemos pasando una :name opción a KV.Registry.start_link.
+
+Understanding applications
+  # Podemos encontrar el .apparchivo generado en _build/dev/lib/kv/ebin/kv.app.
+  # Este archivo contiene términos de Erlang (escritos con sintaxis de Erlang). Aunque no estamos familiarizados con Erlang, es fácil adivinar que este archivo contiene la definición de nuestra aplicación.
+  # En pocas palabras, una aplicación consta de todos los módulos definidos en el .apparchivo, incluido el .apparchivo en sí.
+  # Aunque Mix genera y mantiene el .apparchivo por nosotros, podemos personalizar su contenido agregando nuevas entradas a la application/0función dentro del mix.exsarchivo del proyecto.
+
+Starting applications
+  # Cada aplicación de nuestro sistema se puede iniciar y detener. Las reglas para iniciar y detener una aplicación también se definen en el .apparchivo.
+  # ix inicia la aplicación actual y todas sus dependencias automáticamente. Esto también es válido para mix testmuchos otros comandos Mix.
+    Application.start(:kv)                                  #=> {:error, {:already_started, :kv}}
+  # Puede cambiar este comportamiento dándole la --no-startbandera a Mix. Rara vez se utiliza en la práctica, pero nos permite comprender mejor los mecanismos subyacentes.
+    iex -S mix run --no-start
+    Application.start(:kv)                                  #=> :ok
+  # Necesitamos iniciar cada aplicación manualmente en el orden correcto o llamar de la Application.ensure_all_started.
+    Application.ensure_all_started(:kv)                         #=> {:ok, [:logger, :kv]}
+
+The application callback
+  #  ¿podemos personalizar lo que sucede cuando se inicia nuestra aplicación? De hecho, ¡podemos! Para hacerlo, definimos una devolución de llamada de la aplicación.
+  # El primer paso es decirle a nuestra definición de aplicación (es decir, nuestro .apparchivo) qué módulo va a implementar la devolución de llamada de la aplicación.
+  # El primer paso es decirle a nuestra definición de aplicación (es decir, nuestro .apparchivo) qué módulo va a implementar la devolución de llamada de la aplicación.
+    # en mix.exs
+      def application do
+        [
+          extra_applications: [:logger],
+          mod: {KV, []}
+        ]
+      end

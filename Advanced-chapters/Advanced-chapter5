@@ -1,0 +1,33 @@
+Dynamic supervisors
+  # Los enlaces son bidireccionales, lo que implica que un bloqueo en un depósito bloqueará el registro. Aunque ahora tenemos el supervisor, que garantiza que el registro volverá a estar en funcionamiento.
+  # En otras palabras, queremos que el registro siga funcionando incluso si un depósito se bloquea.
+  # DynamicSupervisorno espera una lista de los niños durante la inicialización; en su lugar, cada niño se inicia manualmente a través de DynamicSupervisor.start_child.
+
+The bucket supervisor
+  # DynamicSupervisortambién nos permite omitir el trabajo de definir un módulo completamente separado con la start_linkfunción habitual y la initdevolución de llamada.
+  # En su lugar, podemos definir a DynamicSupervisordirectamente en el árbol de supervisión, dándole un nombre y una estrategia.
+    {DynamicSupervisor, name: KV.BucketSupervisor, strategy: :one_for_one}
+  # Recuerde que el nombre de un proceso puede ser cualquier átomo. Hasta ahora, hemos nombrado procesos con el mismo nombre que los módulos que definen su implementación.
+    {:ok, bucket} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)                           #=> {:ok, #PID<0.72.0>}
+    KV.Bucket.put(bucket, "eggs", 3)                                                                        #=> :ok
+    KV.Bucket.get(bucket, "eggs")                                                                           #=> 3
+  # DynamicSupervisor.start_child/2 espera que se inicie el nombre del supervisor y la especificación del niño.
+  # Sucede que los supervisores brindan más que reinicios, también son responsables de garantizar un inicio y apagado adecuados, especialmente en caso de fallas en un árbol de supervisión.
+
+Supervision trees
+  # Cuando agregamos KV.BucketSupervisorcomo un hijo de KV.Supervisor, comenzamos a tener supervisores que supervisan a otros supervisores, formando los llamados "árboles de supervisión".
+  # Un defecto que aparece de inmediato es el problema del pedido. Dado que KV.Registryinvoca KV.BucketSupervisor, KV.BucketSupervisordebe iniciarse antes KV.Registry.
+  # El segundo defecto está relacionado con la estrategia de supervisión. Si KV.Registrymuere, KV.Bucketse pierde toda la información que vincula los nombres a los procesos del depósito.
+  # A la luz de esta observación, deberíamos considerar pasar a otra estrategia de supervisión.
+    # Los otros dos candidatos son :one_for_ally :rest_for_one. Un supervisor que utilice la :rest_for_oneestrategia matará y reiniciará los procesos secundarios que se iniciaron después del bloqueo del niño.
+    # En este caso, querríamos KV.BucketSupervisorterminar si KV.Registrytermina. Esto requeriría que el supervisor de depósito se coloque después del registro.
+    #Entonces, nuestra última opción es ir con todo y elegir la :one_for_allestrategia: el supervisor matará y reiniciará todos sus procesos secundarios cada vez que uno de ellos muera.
+
+Shared state in tests
+  # Está bien confiar en el estado compartido siempre que dependamos solo de una partición no compartida de este estado. Aunque varios registros pueden iniciar depósitos en el supervisor de depósito compartido, esos depósitos y registros están aislados entre sí
+  # Dado que hasta ahora nos hemos basado solo en una partición no compartida del supervisor de depósito, no tenemos que preocuparnos por problemas de concurrencia en nuestro conjunto de pruebas.
+
+Observer
+  # se puede llmar a observer d la siguente forma en iex
+    :observer.start
+  # En la pestaña Aplicaciones, verá todas las aplicaciones que se están ejecutando actualmente en su sistema junto con su árbol de supervisión.

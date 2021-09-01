@@ -1,0 +1,27 @@
+ETS
+  # Cada vez que necesitamos buscar un depósito, debemos enviar un mensaje al registro. En caso de que varios procesos accedan a nuestro registro simultáneamente, el registro puede convertirse en un cuello de botella.
+
+ETS as a cache
+  # ETS nos permite almacenar cualquier término de Elixir en una tabla en memoria.
+    table = :ets.new(:buckets_registry, [:set, :protected])
+    :ets.insert(table, {"foo", self()})                                                               #=> true
+    :ets.lookup(table, "foo")                                                                         #=> [{"foo", #PID<0.136.0>}]
+  # Al crear una tabla ETS, se requieren dos argumentos: el nombre de la tabla y un conjunto de opciones.
+    # De las opciones disponibles, pasamos el tipo de tabla y sus reglas de acceso.
+  # Hemos elegido el :set tipo, lo que significa que las claves no se pueden duplicar. También hemos configurado el acceso de la tabla a :protected, lo que significa que solo el proceso que creó la tabla puede escribir en ella.
+  # Los posibles controles de acceso:
+    # :public - Lectura / Escritura disponible para todos los procesos.
+    #:protected- Leer disponible para todos los procesos. Solo se puede escribir por el proceso del propietario. Este es el predeterminado.
+    #:private - Lectura / Escritura limitada al proceso del propietario.
+  # Las tablas ETS también se pueden nombrar, lo que nos permite acceder a ellas por un nombre dado.
+    :ets.new(:buckets_registry, [:named_table])                                                       #=> :buckets_registry
+    :ets.insert(:buckets_registry, {"foo", self()})                                                   #=> true
+    :ets.lookup(:buckets_registry, "foo")                                                             #=> [{"foo", #PID<0.136.0>}]
+
+Race conditions?
+  # Desarrollar en Elixir no hace que su código esté libre de condiciones de carrera. Sin embargo, las abstracciones de Elixir, en las que no se comparte nada de forma predeterminada, facilitan la detección de la causa raíz de una condición de carrera.
+  # Lo que sucede en nuestras pruebas es que hay un retraso entre una operación y el momento en que podemos observar este cambio en la tabla ETS. Esto es lo que esperábamos que sucediera:
+    # Invocamos KV.Registry.create(registry, "shopping")
+    # El registro crea el depósito y actualiza la tabla de caché.
+    # Accedemos a la información de la tabla con KV.Registry.lookup(registry, "shopping")
+    # El comando anterior regresa {:ok, bucket}

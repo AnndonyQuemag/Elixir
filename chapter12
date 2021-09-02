@@ -1,0 +1,51 @@
+IO and the file system
+  # This chapter is a quick introduction to input / output mechanisms and file system related tasks, as well as related modules such as IO, File, and Path.
+
+The File module
+  # The File module contains functions that allow us to open files as IO devices. By default, the files are opened in binary mode, which requires developers to use the specific IO.binread and IO.binwrite functions of the IO module.
+    {:ok, file} = File.open("hello", [:write])                                              #=> {:ok, #PID<0.47.0>}
+    IO.binwrite(file, "world")                                                              #=> :ok
+    iex> File.close(file)                                                                   #=> :ok
+    iex> File.read("hello")                                                                 #=> {:ok, "world"}
+  # A file can also be opened with: utf8 encoding, which tells the Filemodule to interpret the bytes read from the file as UTF-8 encoded bytes.
+  # The File module has many functions to work with the file system. These functions are named after their UNIX equivalents. For example, File.rm can be used to delete files, File.mkdir to create directories, File.mkdir_p to create directories, and its entire main chain. There is even File.cp_r and File.rm_r to respectively copy and delete files and directories recursively (i.e. copy and delete the contents of the directories as well).
+  # You will also notice that the functions in the Filemodule have two variants: a "regular" variant and another variant with a bang (!). For instance.
+    File.read("hello")                                                    #=> {:ok, "world"}
+    File.read!("hello")                                                   #=> "world"
+    File.read("unknown")                                                  #=> {:error, :enoent}
+    File.read!("unknown")                                                 #=> ** (File.Error) could not read file "unknown": no such file or directory
+  # the version with! it returns the content of the file instead of a tuple, and if something goes wrong, the function throws an error, this function is preferred when you want to handle different results using pattern matching.
+    case File.read(file) do
+      {:ok, body}      -> # do something with the `body`
+      {:error, reason} -> # handle the error caused by `reason`
+    end
+  # if you don't want to handle the error results, you prefer to use File.read!
+
+The Path module
+  # Most of the File Module functions expect paths as arguments. Usually those paths will be regular binaries. The Path module provides facilities to work with such paths.
+    Path.join("foo", "bar")                                               #=> "foo/bar"
+    Path.expand("~/hello")                                                #=> "/Users/jose/hello"
+  # It is preferred to use functions from the path module rather than manipulating strings directly, as the Path module handles different operating systems transparently.
+
+Processes
+  # You may have noticed that File.open returns a tuple like {: ok, pid}.
+    {:ok, file} = File.open("hello", [:write])                            #=> {:ok, #PID<0.47.0>}
+  # That happens because the IO module actually works with processes. Since a file is a process, when you write to a file that has been closed, you are actually sending a message to a process that has ended
+    File.close(file)                                                      #=> :ok
+    IO.write(file, "is anybody out there")                                #=> {:error, :terminated}
+
+    pid = spawn(fn ->
+    ...>  receive do: (msg -> IO.inspect msg)
+    ...> end)                                                             #=> #PID<0.57.0>
+    IO.write(pid, "hello")                                                #=> {:io_request, #PID<0.41.0>, #Reference<0.0.8.91>,
+                                                                              {:put_chars, :unicode, "hello"}}
+                                                                              ** (ErlangError) erlang error: :terminated
+
+iodata and chardata
+  # The functions in IO and File also allow lists to be supplied as arguments. Not only that, they also allow a mixed list of lists, integers and binaries to be provided.
+    IO.puts('hello world')                                                #=> hello world
+                                                                              :ok
+    IO.puts(['hello', ?\s, "world"])                                      #=>hello world
+                                                                              :ok
+  # However, the use of lists in IO operations requires some attention. A list can represent a group of bytes or a group of characters and which one to use depends on the encoding of the IO device. If the file is opened raw, the file is expected to be in raw mode and the IO module functions that start with bin * should be used. Those functions expect iodata as an argument; that is, they expect to be supplied with a list of integers representing bytes or binaries.
+  # On the other hand, the: stdiofiles opened with: utf8 encoding work with the rest of the IO module functions. Those functions expect chardata as an argument, that is, a list of characters or strings.

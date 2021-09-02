@@ -1,0 +1,25 @@
+Doctests, patterns and with
+
+Doctests
+  # En la página de inicio del idioma, mencionamos que Elixir hace de la documentación un ciudadano de primera clase en el idioma.
+  # En esta sección, implementaremos la funcionalidad de análisis, la documentaremos y nos aseguraremos de que nuestra documentación esté actualizada con pruebas de documentación.
+  # Las pruebas de documentos se especifican mediante una sangría de cuatro espacios seguidos por la iex>indicación en una cadena de documentación. Si un comando abarca varias líneas, puede usarlo ...>, como en IEx. El resultado esperado debe comenzar en la siguiente línea después de iex>o en la ...>(s) línea (s) y termina con una nueva línea o un nuevo iex>prefijo.
+  # Como su nombre lo indica, doctest es documentación primero y una prueba después. Su objetivo no es reemplazar las pruebas, sino proporcionar documentación actualizada.
+
+With
+  # Como ahora podemos analizar los comandos, finalmente podemos comenzar a implementar la lógica que ejecuta los comandos.
+  # Si todas las cláusulas coinciden, el dobloque se ejecuta y devuelve su resultado. De lo contrario, la cadena se aborta y se devuelve el valor no coincidente.
+    opts = %{width: 10}
+    with {:ok, width} <- Map.fetch(opts, :width),
+        {:ok, height} <- Map.fetch(opts, :height) do
+      {:ok, width * height}
+    end                                                                                                  #=> :error
+  # Al igual que en for/1, las variables vinculadas al interior with/1no se filtrarán. Las expresiones sin <-también se pueden usar en cláusulas.
+    width = nil
+    opts = %{width: 10, height: 15}
+    with {:ok, width} <- Map.fetch(opts, :width),
+        double_width = width * 2,
+        {:ok, height} <- Map.fetch(opts, :height) do
+      {:ok, double_width * height}
+    end                                                                                                 #=> {:ok, 300}
+    width                                                                                               #=> nil

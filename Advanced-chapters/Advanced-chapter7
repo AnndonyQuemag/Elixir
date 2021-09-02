@@ -1,0 +1,30 @@
+Dependencies and umbrella projects
+  # vamos a construir el servidor TCP como otra aplicación que es un cliente de la kvaplicación. Dado que todo el tiempo de ejecución y el ecosistema Elixir están orientados a las aplicaciones, tiene sentido dividir nuestros proyectos en aplicaciones más pequeñas que funcionen juntas en lugar de crear una gran aplicación monolítica.
+  # En la práctica, hay dos tipos de dependencias con las que solemos trabajar: dependencias internas y externas. Mix admite mecanismos para trabajar con ambos.
+
+External dependencies
+  # Las dependencias externas son las que no están vinculadas a su dominio empresarial. Por ejemplo, si necesita una API HTTP para su aplicación KV distribuida, puede utilizar el proyecto Plug como una dependencia externa.
+  # La instalación de dependencias externas es sencilla. Más comúnmente, usamos Hex Package Manager , enumerando la dependencia dentro de la función deps en nuestro mix.exsarchivo.
+    def deps do
+      [{:plug, "~> 1.0"}]
+    end
+  # Normalmente, las versiones estables se envían a Hex. Si desea depender de una dependencia externa aún en desarrollo, Mix también puede administrar las dependencias de Git.
+    def deps do
+      [{:plug, git: "git://github.com/elixir-lang/plug.git"}]
+    end
+
+Internal dependencies
+  # Las dependencias internas son las específicas de su proyecto. Por lo general, no tienen sentido fuera del alcance de su proyecto / empresa / organización. La mayoría de las veces, desea mantenerlos privados, ya sea por razones técnicas, económicas o comerciales.
+  # Si tiene una dependencia interna, Mix admite dos métodos para trabajar con ellos: repositorios de Git o proyectos generales.
+    def deps do
+      [{:kv, git: "https://github.com/YOUR_ACCOUNT/kv.git"}]
+    end
+
+Umbrella projects
+  # Los proyectos de Umbrella se utilizan para crear aplicaciones que se ejecutan juntas en un solo repositorio.
+  # Comencemos un nuevo proyecto usando mix new. Este nuevo proyecto se nombrará kv_umbrellay debemos pasar la --umbrellaopción al crearlo.
+  # Lo que hace que este proyecto sea diferente del anterior es la apps_path: "apps"entrada en la definición del proyecto. Esto significa que este proyecto actuará como un paraguas. Estos proyectos no tienen archivos fuente ni pruebas, aunque pueden tener sus propias dependencias. Cada aplicación secundaria debe definirse dentro del appsdirectorio.
+  # Vayamos dentro del directorio de aplicaciones y comencemos a construir kv_server. Esta vez, vamos a pasar la --supbandera, que le dirá a Mix que genere un árbol de supervisión automáticamente para nosotros, en lugar de construir uno manualmente como hicimos en los capítulos anteriores.
+
+Dependencies within an umbrella project
+  # Las dependencias entre aplicaciones en un proyecto general aún deben definirse explícitamente y Mix facilita hacerlo.

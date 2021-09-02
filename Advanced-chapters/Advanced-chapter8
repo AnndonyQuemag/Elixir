@@ -1,0 +1,23 @@
+Task and gen_tcp
+
+Echo server
+  # Iniciaremos nuestro servidor TCP implementando primero un servidor de eco. Enviará una respuesta con el texto que recibió en la solicitud. Poco a poco mejoraremos nuestro servidor hasta que esté supervisado y listo para manejar múltiples conexiones.
+  # Un servidor TCP, a grandes rasgos, realiza los siguientes pasos:
+
+    # Escucha un puerto hasta que el puerto está disponible y se apodera del socket
+    # Espera una conexión de cliente en ese puerto y la acepta
+    # Lee la solicitud del cliente y escribe una respuesta.
+  # una vez implementado el servidor se lo llama.
+    iex> KVServer.accept(4040)
+  # El servidor ahora se está ejecutando e incluso notará que la consola está bloqueada. Usemos un telnetcliente para acceder a nuestro servidor. Hay clientes disponibles en la mayoría de los sistemas operativos y sus líneas de comando son generalmente similares.
+    $ telnet 127.0.0.1 4040
+  # Escriba "hola", presione enter y obtendrá "hola" de vuelta. ¡Excelente!
+
+Task
+  # el modulo de tareas sirve para ejecutar alguna tarea y nada mas.
+  # una vez implementado el cambio se llama al servidor y telnet, dos veces y se puede apreciar que el segundo cliente de telnet no recibe respuestas.
+  # Eso es porque estamos atendiendo solicitudes en el mismo proceso que acepta conexiones. Cuando un cliente está conectado, no podemos aceptar otro cliente.
+
+Task supervisor
+  # Para que nuestro servidor maneje conexiones simultáneas, necesitamos tener un proceso que funcione como un aceptador que genere otros procesos para atender las solicitudes.
+  # si vinculamos la serve(client)tarea al aceptador, un bloqueo al atender una solicitud haría que el aceptador y, en consecuencia, todas las demás conexiones, caigan.

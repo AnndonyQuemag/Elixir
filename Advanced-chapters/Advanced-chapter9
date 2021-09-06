@@ -1,0 +1,25 @@
+Doctests, patterns and with
+
+Doctests
+  # On the language homepage, we mentioned that Elixir makes documentation a first-class citizen of the language.
+  # In this section, we will implement the analysis functionality, document it, and make sure our documentation is up to date with documentation tests.
+  # Document tests are specified by an indentation of four spaces followed by the iex> indication in a docstring. If a command spans multiple lines, you can use it ...>, as in IEx. The expected result should start on the next line after iex> or on the ...> (s) line (s) and end with a new line or a new iex> prefix.
+  # As the name implies, doctest is documentation first and test second. It is not intended to replace testing, but to provide up-to-date documentation.
+
+With
+  # Since we can now parse the commands, we can finally begin to implement the logic that executes the commands.
+  # If all the clauses match, the double is executed and returns its result. Otherwise, the string is aborted and the mismatched value is returned.
+    opts = %{width: 10}
+    with {:ok, width} <- Map.fetch(opts, :width),
+        {:ok, height} <- Map.fetch(opts, :height) do
+      {:ok, width * height}
+    end                                                                                                  #=> :error
+  # As in for / 1, variables bound inside with / 1 will not be filtered. Expressions without <-can also be used in clauses.
+    width = nil
+    opts = %{width: 10, height: 15}
+    with {:ok, width} <- Map.fetch(opts, :width),
+        double_width = width * 2,
+        {:ok, height} <- Map.fetch(opts, :height) do
+      {:ok, double_width * height}
+    end                                                                                                 #=> {:ok, 300}
+    width                                                                                               #=> nil}

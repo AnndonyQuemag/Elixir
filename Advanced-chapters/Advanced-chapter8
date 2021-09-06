@@ -1,0 +1,23 @@
+Task and gen_tcp
+
+Echo server
+  # We will start our TCP server by first implementing an echo server. You will send a reply with the text you received in the application. Little by little we will improve our server until it is supervised and ready to handle multiple connections.
+  # A TCP server, roughly, performs the following steps:
+
+    # Listen for a port until the port is available and seizes the socket
+    # Wait for a client connection on that port and accept it
+    # Read the client's request and write a response.
+# once the server is implemented it is called.
+    iex> KVServer.accept(4040)
+  # The server is now running and you will even notice that the console is frozen. Let's use a telnet client to access our server. There are clients available on most operating systems and their command lines are generally similar.
+    $ telnet 127.0.0.1 4040
+  # Type "hello", hit enter and you will get "hello" back. Excellent!
+
+Task
+  # the task module is used to execute some task and nothing else.
+   # Once the change is implemented, the server and telnet are called twice and it can be seen that the second telnet client does not receive responses.
+   # That is because we are serving requests in the same process that accepts connections. When a client is connected, we cannot accept another client.
+
+Task supervisor
+  # In order for our server to handle simultaneous connections, we need to have a process that works as an acceptor that generates other processes to serve the requests.
+  # if we bind the serve (client) task to the acceptor, a crash while serving a request would cause the acceptor, and consequently all other connections, to drop.

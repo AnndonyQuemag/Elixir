@@ -1,0 +1,33 @@
+Dynamic supervisors
+  # The links are bi-directional, which means that a lock on a bucket will lock the record. Although now we have the supervisor, who guarantees that the registry will be operational again.
+  # In other words, we want the registry to keep working even if a bucket crashes.
+  # DynamicSupervisor does not expect a list of children during initialization; instead, each child is started manually via DynamicSupervisor.start_child.
+
+The bucket supervisor
+  # DynamicSupervisor also allows us to skip the work of defining a completely separate module with the usual start_link function and init callback.
+  # Instead, we can define DynamicSupervisor directly in the supervision tree, giving it a name and a strategy.
+    {DynamicSupervisor, name: KV.BucketSupervisor, strategy: :one_for_one}
+  # Remember that the name of a process can be any atom. So far, we have named processes with the same name as the modules that define their implementation.
+    {:ok, bucket} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)                           #=> {:ok, #PID<0.72.0>}
+    KV.Bucket.put(bucket, "eggs", 3)                                                                        #=> :ok
+    KV.Bucket.get(bucket, "eggs")                                                                           #=> 3
+  # DynamicSupervisor.start_child / 2 waits for the name of the supervisor and the child specification to start.
+  # It happens that supervisors provide more than reboots, they are also responsible for ensuring proper startup and shutdown, especially in the event of failures in a monitoring tree.
+
+Supervision trees
+  # When we added KV.BucketSupervisor as a child of KV.Supervisor, we started to have supervisors who supervise other supervisors, forming so-called "supervision trees".
+  # A defect that appears immediately is the problem of the order. Since KV.Registry invokes KV.BucketSupervisor, KV.BucketSupervisor must be started before KV.Registry.
+  # The second flaw is related to the supervision strategy. If KV.Registry dies, KV.Bucketse loses all information that links the names to the warehouse processes.
+  # In light of this observation, we should consider moving to another monitoring strategy.
+    # The other two candidates are: one_for_ally: rest_for_one. A monitor using the: rest_for_oneestrategia will kill and restart the child processes that started after the child lock.
+    # In this case, we would like to KV.BucketSupervise terminate if KV.Registry terminates. This would require the warehouse supervisor to register after registration.
+    #So our last option is to go with everything and choose the: one_for_allestrategia: the supervisor will kill and restart all its child processes every time one of them dies.
+
+Shared state in tests
+  # It is fine to trust the shared state as long as we depend only on a non-shared partition of this state. Although multiple registries can initiate deposits in the shared warehouse supervisor, those deposits and registries are isolated from each other
+   # Since we have so far relied only on a non-shared warehouse monitor partition, we don't have to worry about concurrency issues in our test suite.
+
+Observer
+  # you can call observer as follows in iex
+    :observer.start
+  # On the Applications tab, you will see all the applications currently running on your system along with their monitoring tree.

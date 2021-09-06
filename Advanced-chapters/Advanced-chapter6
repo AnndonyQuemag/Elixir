@@ -1,0 +1,27 @@
+ETS
+  # Every time we need to search for a bucket, we need to send a message to the registry. In the event that several processes access our registry simultaneously, the registry can become a bottleneck.
+
+ETS as a cache
+  # ETS allows us to store any Elixir term in a table in memory.
+    table = :ets.new(:buckets_registry, [:set, :protected])
+    :ets.insert(table, {"foo", self()})                                                               #=> true
+    :ets.lookup(table, "foo")                                                                         #=> [{"foo", #PID<0.136.0>}]
+  # When creating an ETS table, two arguments are required: the name of the table and a set of options.
+    # Of the available options, we pass the type of table and its access rules.
+  # We have chosen the: set type, which means that the keys cannot be duplicated. We have also configured the table's access to: protected, which means that only the process that created the table can write to it.
+  # Possible access controls:
+    #: public - Read / Write available for all processes.
+    #: protected- Read available to all processes. It can only be written by the owner process. This is the default.
+    #: private - Read / Write limited to the owner's process.
+  # ETS tables can also be named, allowing us to access them by a given name.
+    :ets.new(:buckets_registry, [:named_table])                                                       #=> :buckets_registry
+    :ets.insert(:buckets_registry, {"foo", self()})                                                   #=> true
+    :ets.lookup(:buckets_registry, "foo")                                                             #=> [{"foo", #PID<0.136.0>}]
+
+Race conditions?
+  # Developing on Elixir does not make your code free of race conditions. However, Elixir abstractions, in which nothing is shared by default, make it easy to detect the root cause of a race condition.
+  # What happens in our tests is that there is a delay between an operation and when we can observe this change in the ETS table. This is what we expected to happen:
+    # Invocamos KV.Registry.create(registry, "shopping")
+    # El registro crea el depósito y actualiza la tabla de caché.
+    # Accedemos a la información de la tabla con KV.Registry.lookup(registry, "shopping")
+    # El comando anterior regresa {:ok, bucket}

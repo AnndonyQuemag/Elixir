@@ -10,7 +10,7 @@ GenServer callbacks
   # Hay dos tipos de solicitudes que puede enviar a un GenServer: llamadas y transmisiones. Las llamadas son síncronas y el servidor debe enviar una respuesta a dichas solicitudes. Mientras el servidor calcula la respuesta, el cliente está esperando .
   # Las conversiones son asincrónicas cuando el servidor no envia una respuesta y, por lo tanto, el cliente no esperará una.
 
-  # El @impl trueinforma al compilador que nuestra intención para la siguiente definición de función es definir una devolución de llamada. Si por casualidad cometemos un error en el nombre de la función o en el número de argumentos, como definimos a handle_call/2, el compilador nos advierte que no hay ninguno handle_call/2para definir y nos da la lista completa de devoluciones de llamada conocidas para el GenServermódulo.
+  # El @impl true informa al compilador que nuestra intención para la siguiente definición de función es definir una devolución de llamada. Si por casualidad cometemos un error en el nombre de la función o en el número de argumentos, como definimos a handle_call/2, el compilador nos advierte que no hay ninguno handle_call/2para definir y nos da la lista completa de devoluciones de llamada conocidas para el GenServermódulo.
 
 The Client API
   # Un GenServer se implementa en dos partes: la API del cliente y las devoluciones de llamada del servidor. Puede combinar ambas partes en un solo módulo o puede separarlas en un módulo de cliente y un módulo de servidor.

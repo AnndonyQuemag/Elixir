@@ -1,0 +1,40 @@
+Supervisor and Application
+  # In Elixir, this is done by a supervisor. A monitor is a process that monitors other processes and restarts them each time they fail. To do this, supervisors manage the entire life cycle of monitored processes, including startup and shutdown.
+
+Our first supervisor
+  # A supervisor is a process that monitors other processes, which we refer to as child processes.
+  # The act of monitoring a process includes three distinct responsibilities.
+    # The first is to start child processes.
+    # The supervisor can restart a child process, either because it terminated abnormally or because a certain condition was reached.
+    # Finally, a supervisor is also responsible for shutting down child processes when the system is shutting down.
+
+Naming processes
+  # While our application will have many deposits, it will only have one record. Therefore, every time we start the registry, we want to give it a unique name so that we can access it from anywhere. We do this by passing a: name option to KV.Registry.start_link.
+
+Understanding applications
+  # We can find the generated .apfile in _build / dev / lib / kv / ebin / kv.app.
+  # This file contains Erlang terms (written with Erlang syntax). Although we are not familiar with Erlang, it is easy to guess that this file contains the definition of our application.
+  # Simply put, an application consists of all the modules defined in the .apparfile, including the .apparfile itself.
+  # Although Mix generates and maintains the .appar file for us, we can customize its content by adding new entries to the application / 0 function within the mix.exs file of the project.
+
+Starting applications
+  # Every application in our system can be started and stopped. The rules for starting and stopping an application are also defined in the .ap file.
+  # ix starts the current application and all its dependencies automatically. This is also true for mix tests and many other Mix commands.
+    Application.start(:kv)                                  #=> {:error, {:already_started, :kv}}
+  # You can change this behavior by giving Mix the --no-start flag. It is rarely used in practice, but it allows us to better understand the underlying mechanisms.
+    iex -S mix run --no-start
+    Application.start(:kv)                                  #=> :ok
+  # We need to start each application manually in the correct order or call from the Application.ensure_all_started.
+    Application.ensure_all_started(:kv)                         #=> {:ok, [:logger, :kv]}
+
+The application callback
+  # Can we customize what happens when our application starts? In fact, we can! To do this, we define an application callback.
+  # The first step is to tell our application definition (that is, our .apfile) which module is going to implement the application callback.
+  # The first step is to tell our application definition (that is, our .apfile) which module is going to implement the application callback.
+    # en mix.exs
+      def application do
+        [
+          extra_applications: [:logger],
+          mod: {KV, []}
+        ]
+      end

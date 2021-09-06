@@ -1,0 +1,30 @@
+Configuration and releases
+  # we will configure the routing table for our distributed key value store and finally package the software for production.
+
+Application environment
+  # We need a way to configure the application environment. That's when we use configuration files.
+  # So far we have hard-coded the routing table in the KV.Routermodule. However, we would like the table to be dynamic. This allows us to not only configure development / test / production, but also allow different nodes to run with different entries in the routing table.
+
+Configuration
+  # The configuration files provide us with a mechanism to configure the environment of any application. Elixir provides two configuration entry points.
+    # config / config.exs- this file is read at compile time, before we compile our application and even before we load our dependencies. This means that we cannot access the code in our application or in our dependencies. However, it means that we can control how they are compiled
+
+    # config / runtime.exs- this file is read after compiling our application and dependencies and thus you can configure how our application works at runtime. If you want to read system environment variables (via System.get_env / 1) or any kind of foreign setting, this is the appropriate place to do it.
+
+Releases
+  # Now that our application is running distributed, you might be wondering how we can package our application to run in production. After all, all of our code so far depends on the versions of Erlang and Elixir that are installed on your current system. To achieve this goal, Elixir provides casts.
+  # A version is a self-contained directory consisting of your application code, all its dependencies, plus the entire Erlang virtual machine (VM) and runtime.
+  # In a normal project, we can assemble a version simply by running mix release. However, we have a general project and in such cases Elixir requires some additional input from us.
+  # Inside the version, there will be a bin / foo file that is the entry point to your system. Supports multiple commands, such as:
+    # bin / foo start, bin / foo start_iex, bin / foo restart, AND bin / foo stop- for general release management
+    # bin / foo rpc COMMANDy bin / foo remote- to run commands on the running system or to connect to the running system
+    # bin / foo eval COMMAND - to start a new system that executes a single command and then shuts down
+    # bin / foo daemony bin / foo daemon_iex- to start the system as a daemon on Unix-like systems
+    # bin / foo install - to install the system as a service on Windows machines.
+
+Why releases?
+  # Versions allow developers to precompile and package all their code and runtime in a single unit. The benefits of the launches are:
+    # Code preload. The VM has two mechanisms for loading code: interactive and integrated.
+    # Configuration and customization. Releases give developers detailed control over system settings and VM flags used to boot the system.
+    # Autonomous. A release does not require the source code to be included in its production artifacts. All code is precompiled and packaged. The versions don't even require Erlang or Elixir on their servers as they include Erlang VM and its runtime by default.
+    # Multiple releases. You can assemble different versions with different configurations per application or even with different applications together.

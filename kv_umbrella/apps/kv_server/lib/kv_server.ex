@@ -23,27 +23,11 @@ defmodule KVServer do
     loop_acceptor(socket)
   end
 
-  # defp serve(socket) do
-  #   socket
-  #   |> read_line()
-  #   |> write_line(socket)
-
-  #   serve(socket)
-  # end
-
-  # defp read_line(socket) do
-  #   {:ok, data} = :gen_tcp.recv(socket, 0)
-  #   data
-  # end
-
-  # defp write_line(line, socket) do
-  #   :gen_tcp.send(socket, line)
-  # end
   defp serve(socket) do
     msg =
       with {:ok, data} <- read_line(socket),
-          {:ok, command} <- KVServer.Command.parse(data),
-          do: KVServer.Command.run(command)
+           {:ok, command} <- KVServer.Command.parse(data),
+           do: KVServer.Command.run(command)
 
     write_line(socket, msg)
     serve(socket)
@@ -58,8 +42,6 @@ defmodule KVServer do
   end
 
   defp write_line(socket, {:error, :not_found}) do
-    # Known error; write to the client
-    #:gen_tcp.send(socket, "UNKNOWN COMMAND\r\n")
     :gen_tcp.send(socket, "NOT FOUND\r\n")
   end
 

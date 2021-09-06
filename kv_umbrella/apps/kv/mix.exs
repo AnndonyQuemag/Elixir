@@ -7,6 +7,7 @@ defmodule KV.MixProject do
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
+      config_path: "../../config/runtime.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
       elixir: "~> 1.7",
@@ -18,8 +19,8 @@ defmodule KV.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      # extra_applications: [:logger]
       extra_applications: [:logger],
+      env: [routing_table: []],
       mod: {KV, []}
     ]
   end
@@ -32,6 +33,5 @@ defmodule KV.MixProject do
       {:plug, "~> 1.7.0"}
       # {:plug, git: "git://github.com/elixir-lang/plug.git"}
     ]
-
   end
 end

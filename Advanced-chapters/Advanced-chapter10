@@ -1,0 +1,62 @@
+Distributed tasks and tags
+  # We will go back to the: kvapp and add a routing layer that will allow us to distribute requests between nodes based on the bucket name.
+  # The routing layer will receive a routing table in the following format.
+    [
+      {?a..?m, :"foo@computer-name"},
+      {?n..?z, :"bar@computer-name"}
+    ]
+  # The router will check the first byte of the bucket name against the table and send it to the appropriate node based on that.
+    # Example
+      # a bucket that starts with the letter "a" (? a represents the Unic code point
+  # If the matching input points to the node evaluating the request, then we have finished routing and this node will perform the requested operation.
+  # If the matching input points to a different node, we will pass the request to this node, which will see its own routing table (which may be different from the first node) and act accordingly.
+  # If no entry matches, an error will be generated.
+
+Our first distributed code
+# Elixir is shipped with facilities to connect nodes and exchange information between them.
+  # In fact, we use the same concepts of processes, message transmission and message reception when we work in a distributed environment because Elixir processes are transparent in terms of location.
+  # To run distributed code, we need to start the VM with a name. The name can be short (when on the same network) or long (requires the full address of the computer). Let's start a new IEx session.
+    iex --sname foo
+  # Let's define a module called Hello in this shell.
+    defmodule Hello do
+      def world, do: IO.puts "hello world"
+    end
+  # We can send and receive the pid messages returned by Node.spawn_link / 2 as usual. Let's try a quick ping pong example.
+    pid = Node.spawn_link :"foo@computer-name", fn ->
+    receive do
+      {:ping, client} -> send client, :pong
+      end
+    end                                                                             #=> #PID<9014.59.0>
+    send pid, {:ping, self()}                                                       #=> {:ping, #PID<0.73.0>}
+    flush()                                                                         #=> :pong :ok
+  # There are three better alternatives to Node.spawn_link that we could use in our implementation:
+
+    # We could use Erlang's: rpc module to execute functions on a remote node. Inside the bar @ computer-name shell above, you can call: rpc.call (: "foo @ computer-name", Hello,: world, []) and it will print "hello world"
+
+    # We could have a server running on the other node and send requests to that node through the GenServer API. For example, you can call a server on a remote node using GenServer.call ({name, node}, arg) or passing the PID of the remote process as the first argument
+
+    # We could use tasks, which we have learned about in a previous chapter, since they can be generated both on local and remote nodes.
+
+async/await
+  # We have explored tasks that start and run in isolation, regardless of their return value. However, sometimes it is useful to run a task to calculate a value and read its result later.
+    task = Task.async(fn -> compute_something_expensive() end)
+    res  = compute_something_else()
+    res + Task.await(task)
+  # async / await provides a very simple mechanism to calculate values at the same time. Not only that, async / await can also be used with the same Task.Supervisor that we have used in previous chapters.
+  # We just need to call Task.Supervisor.async / 2 instead of Task.Supervisor.start_child / 2 and use Task.await / 2 to read the result later.
+
+Distributed tasks
+  # Distributed tasks are exactly the same as supervised tasks. The only difference is that we pass the name of the node when generating the task in the supervisor.
+  # The difference is that anonymous functions require that the target node have the exact same code version as the caller. The use of module, function and arguments is more robust because you only need to find a function with matching arity in the given module.
+
+Routing layer
+  # implement everything in code
+
+Test filters and tags
+  # Although our tests pass, our test structure is becoming more complex. In particular, running tests with only mix test causes crashes in our suite, as our test requires a connection to another node.
+  # Fortunately, ExUnit ships with a function to tag tests, allowing us to run specific callbacks or even filter tests based on those tags.
+    This time let's add a: distributedetiqueta to test / kv / router_test.exs
+  # This time all the tests passed and ExUnit warned us that the distributed tests were being excluded.
+
+Wiring it all up
+  # Now with our routing system in place, let's change the KVServer to use the router.

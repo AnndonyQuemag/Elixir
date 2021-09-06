@@ -1,0 +1,30 @@
+GenServer
+  # Naming dynamic processes with atoms is a terrible idea. If we are using atoms, we would need to convert the bucket name (often received from an external client) to atoms, and we should never convert user input to atoms.
+  # This is because atoms are not collected as garbage. Once an atom is created, it is never recovered.
+  # Generating atoms from user input would mean that the user can inject enough different names to exhaust our system's memory.
+
+  # We will use a GenServer to create a registration process that can monitor the warehouse processes. GenServer provides industrial strength functionality to build both Elixir and OTP servers.
+GenServer callbacks
+  # A GenServer is a process that invokes a limited set of functions under specific conditions. When we used an Agent, we would keep the client code and the server code next to each other.
+  # There are two types of requests that you can send to a GenServer: calls and broadcasts. The calls are synchronous and the server must send a response to those requests. While the server calculates the response, the client is waiting.
+  # Conversions are asynchronous when the server does not send a response and therefore the client will not wait for one.
+
+  # The @impl true informs the compiler that our intention for the next function definition is to define a callback. If by chance we make a mistake in the name of the function or the number of arguments, as we define handle_call, the compiler warns us that there is no handle_call to define and gives us the full list of known callbacks for the GenServer module.
+
+The Client API
+  # A GenServer is implemented in two parts: the client API and the server callbacks. You can combine both parts into a single module or you can separate them into a client module and a server module.
+    # The client is any process that invokes the client function.
+    # The server is always the process identifier or the process name that we will explicitly pass as an argument to the client API.
+
+call, cast or info?
+  # So far we have used three callbacks: handle_call / 3, handle_cast / 2, and handle_info / 2. Here's what to consider when deciding when to use each one:
+
+  # handle_call / 3 should be used for synchronous requests. This should be the default, as waiting for a response from the server is a useful back pressure mechanism.
+
+  # handle_cast / 2 should be used for asynchronous requests, when you don't care about a response. A cast does not even guarantee that the message was received by the server and for this reason it should be used sparingly. For example, create / 2 should have used the function we defined in this chapter call / 2. We have used cast / 2 for teaching purposes.
+
+  # handle_info / 2 should be used for all other messages that a server can receive that are not sent through GenServer.call/2 or GenServer.cast / 2, including regular messages sent with send / 2. The: DOWN follow-up messages are an example of this.
+
+Monitors or links?
+  # The links are bidirectional. If you link two processes and one of them crashes, the other side will crash as well (unless you are trapping exits).
+  # A monitor is unidirectional: only the monitoring process will receive notifications about the monitor. In other words: use links when you want linked locks and monitors when you only want to be informed of locks, exits, etc.

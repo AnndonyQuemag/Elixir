@@ -1,0 +1,24 @@
+Agent
+
+The trouble with state
+  # Elixir is an immutable language where nothing is shared by default. If we want to share information, which can be read and modified from multiple places, we have two main options in Elixir.
+    # Use of processes and transmission of messages
+    # ETS (Erlang term storage)
+  # when it comes to processes we rarely use our own, instead we use the abstractions available in Elixir and OTP:
+    # Agent: simple wrappers around the state.
+    # GenServer - “generic servers” (processes) that encapsulate state, provide synchronized and asynchronous calls, support code reloading, and more.
+    # Task: asynchronous calculation units that allow generating a process and potentially retrieving its result at a later time.
+
+Agents
+  # Agents are simple wrappers from across the state. If all you want from a process is to maintain state, agents are a great option.
+    {:ok, agent} = Agent.start_link fn -> [] end                                            #=> {:ok, #PID<0.142.0>}
+    Agent.update(agent, fn list -> ["eggs" | list] end)                                     #=> :ok
+    Agent.get(agent, fn list -> list end)                                                   #=> ["eggs"]
+    Agent.stop(agent)                                                                       #=> :ok
+  # The Agent.update function accepts as a second argument any function that takes an argument and returns a value.
+    {:ok, agent} = Agent.start_link fn -> [] end                                            #=> {:ok, #PID<0.338.0>}
+    Agent.update(agent, fn _list -> 123 end)                                                #=> :ok
+    Agent.update(agent, fn content -> %{a: content} end)                                    #=> :ok
+    Agent.update(agent, fn content -> [12 | [content]] end)                                 #=> :ok
+    Agent.update(agent, fn list -> [:nop | list] end)                                       #=> :ok
+    Agent.get(agent, fn content -> content end)                                             #=> [:nop, 12, %{a: 123}]

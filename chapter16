@@ -1,0 +1,97 @@
+Protocols
+  # Protocols are a mechanism for achieving polymorphism in Elixir when you want behavior to vary based on data type.
+    defmodule Utility do
+      def type(value) when is_binary(value), do: "string"
+      def type(value) when is_integer(value), do: "integer"
+    end
+  # If the use of this module were limited to your own project, you could still define new type / 1 functions for each new data type. However, this code could be problematic if it was shared as a dependency by multiple applications, as it would not be easy to extend its functionality.
+  # protocols allow the original behavior to be extended for as many types of data as needed.
+  # This is how you could write the same Utility.type functionality as a protocol.
+    defprotocol Utility do
+      @spec type(t) :: String.t()
+      def type(value)
+    end
+
+    defimpl Utility, for: BitString do
+      def type(_value), do: "string"
+    end
+
+    defimpl Utility, for: Integer do
+      def type(_value), do: "integer"
+    end
+    Utility.type("foo")                                                 #=> "string"
+    Utility.type(123)                                                   #=> "integer"
+  # Another example.
+    defprotocol Size do
+      @doc "Calculates the size (and not the length!) of a data structure"
+      def size(data)
+    end
+  # If this is implemented with protocols it would look like this.
+    defimpl Size, for: BitString do
+      def size(string), do: byte_size(string)
+    end
+
+    defimpl Size, for: Map do
+      def size(map), do: map_size(map)
+    end
+
+    defimpl Size, for: Tuple do
+      def size(tuple), do: tuple_size(tuple)
+    end
+  # Now when testing it.
+    Size.size("foo")                                                    #=> 3
+    Size.size({:ok, "hello"})                                           #=> 2
+    Size.size(%{label: "some label"})                                   #=> 1
+  # Passing a data type that does not implement the protocol generates an error.
+    Size.size([1, 2, 3])                                              #=> ** (Protocol.UndefinedError) protocol Size not implemented for [1, 2, 3]
+
+Protocols and structs
+  # The power of Elixir's extensibility arises when protocols and structures are used together.
+  # For example, MapSets (sets based on maps) are implemented as structures, if you try to implement this with Size you will have the following.
+    Size.size(%{})                                                      #=> 0
+    set = %MapSet{} = MapSet.new                                        #=> #MapSet<[]>
+    Size.size(set)                                                      #=> ** (Protocol.UndefinedError) protocol Size not implemented for #MapSet<[]>
+  # This will give an error as the mapset as this is a structure and requires its own implementation.
+    defimpl Size, for: MapSet do
+      def size(set), do: MapSet.size(set)
+    end
+
+Implementing Any
+  # La implementación manual de protocolos para todos los tipos puede volverse rápidamente repetitiva y tediosa. En tales casos, Elixir ofrece dos opciones.
+    # derivar explícitamente la implementación del protocolo para nuestros tipos.
+    # implementar automáticamente el protocolo para todos los tipos.
+
+Deriving
+  # Elixir allows you to derive a protocol implementation based on the Any implementation.
+    defimpl Size, for: Any do
+      def size(_), do: 0
+    end
+      # esta implementacion no es razonable, para que la implemenacion funcione y poder usarla se deberia usar derive.
+        defmodule OtherUser do
+          @derive [Size]
+          defstruct [:name, :age]
+        end
+
+Fallback to Any
+  # Another alternative @derive is to explicitly tell the protocol to fall back to Any when an implementation cannot be found. This can be achieved by setting @fallback_to_any to true the protocol definition
+    defprotocol Size do
+      @fallback_to_any true
+      def size(data)
+    end
+  # For most protocols, generating an error when a protocol is not implemented is the proper behavior.
+  # If this is implemented with size, it will be obtained that everything that is not defined will have a value of 0.
+    defimpl Size, for: Any do
+      def size(_), do: 0
+    end
+    Size.size([1, 2, 3])                                                    #=> 0
+
+Built-in protocols
+  # Elixir ships with some built-in protocols.
+    Enum.map [1, 2, 3], fn(x) -> x * 2 end                                  #=> [2, 4, 6]
+    Enum.reduce 1..3, 0, fn(x, acc) -> x + acc end                          #=> 6
+  # When there is a need to "print" a more complex data structure, the Inspect function, based on the Inspect protocol, can be used.
+    tuple = {1, 2, 3}                                              #=> {1, 2, 3}
+    "tuple: #{tuple}"                                              #=>** (Protocol.UndefinedError) protocol String.Chars not implemented for {1, 2, 3}
+  # Now with inspect
+    "tuple: #{inspect tuple}"                                      #=> "tuple: {1, 2, 3}"
+  # The Inspect Protocol is the protocol used to transform any data structure into a readable textual representation.

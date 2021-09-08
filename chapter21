@@ -1,0 +1,55 @@
+Debugging
+  # There are several ways to debug code in Elixir.
+
+IO.inspect / 2
+  # What IO.inspect (item, opts \\ []) makes debugging really useful is that it returns the itemargument passed to it without affecting the behavior of the original code.
+    (1..10)
+    IO.inspect
+    Enum.map(fn x -> x * 2 end)
+    IO.inspect
+    Enum.sum
+    IO.inspect
+  # Fingerprints
+    1..10
+    [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    110
+  # IO.inspect also offers the possibility to decorate the output with an option label. The label will be printed before the inspected item.
+    [1, 2, 3]
+    IO.inspect(label: "before")
+    Enum.map(&(&1 * 2))
+    IO.inspect(label: "after")
+    Enum.sum
+  # Fingerprints
+    before: [1, 2, 3]
+    after: [2, 4, 6]
+  # It is also very common to use IO.inspect with binding (), which returns all variable names and their values.
+    def some_fun(a, b, c) do
+      IO.inspect binding()
+      ...
+    end
+  # When some_fun is invoked with :foo, "bar", :baz it prints.
+    [a: :foo, b: "bar", c: :baz]
+
+IEx.pry y IEx.break!
+  # Although IO.inspect is static, the Elixir interactive shell provides more dynamic ways to interact with debugged code.
+  # The first one is with the IEx.pry that we can use instead of IO.inspect binding().
+    def some_fun(a, b, c) do
+      require IEx; IEx.pry
+      ...
+    end
+  # Once the above code is executed within an iexsession, IEx will ask if we want to pry the current code. If it is accepted, we will be able to access all the variables, as well as the imports and aliases of the code, directly from IEx.
+
+Debugger
+  # Erlang / OTP comes with a conveniently named graphical debugger: debugger. Let's define a module in a file called example.ex.
+  # Now let's compile the file and run an IEx session.
+    elixirc example.ex
+    iex
+  # Then start the debugger.
+    :debugger.start()                                                       #=> {:ok, #PID<0.87.0>}
+    :int.ni(Example)                                                        #=> {:module, Example}
+    :int.break(Example, 3)                                                  #=> :ok
+    Example.double_sum(1, 2)                                                #=> Debugger.
+
+Observer
+  # To debug complex systems, jumping into code is not enough. You need to understand the entire virtual machine, processes, and applications, and configure the monitoring mechanisms. Fortunately this can be achieved in Erlang with :observer
+    :observer.start()
